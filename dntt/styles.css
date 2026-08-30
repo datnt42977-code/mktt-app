@@ -1,0 +1,146 @@
+/* ================ RESET & BASE ================ */
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: "Times New Roman", Times, serif;
+  font-size: 13pt;
+  color: #000;
+  background: #f4f4f4;
+}
+
+/* ================ FORM (screen only) ================ */
+#form {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: calc(12px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left));
+  background: #fff;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+}
+#form h1 { font-size: 20px; margin: 0 0 12px; }
+.form-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.form-actions button, #btn-add-row, .mini {
+  padding: 8px 12px; border: 1px solid #bbb; border-radius: 6px;
+  background: #f7f7f7; font-size: 14px; cursor: pointer; min-height: 40px;
+}
+#form fieldset { border: 1px solid #ddd; border-radius: 8px; padding: 10px 12px; margin: 0 0 12px; }
+#form legend { font-weight: 600; padding: 0 6px; }
+#form label { display: block; margin: 8px 0; font-size: 14px; }
+#form input[type="text"], #form input[type="number"], #form select {
+  display: block; width: 100%; min-height: 44px; padding: 8px 10px; margin-top: 4px;
+  border: 1px solid #bbb; border-radius: 6px; font-size: 16px; background: #fff;
+}
+#form label.checkbox { display: flex; align-items: center; gap: 8px; }
+#form label.checkbox input { width: auto; min-height: 0; margin: 0; transform: scale(1.3); }
+.inline-row { display: flex; gap: 6px; align-items: stretch; }
+.inline-row input { flex: 1; }
+.inline-row .mini { flex: 0 0 auto; margin-top: 4px; }
+.upper { text-transform: uppercase; }
+
+/* debt rows */
+.debt-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr; gap: 6px;
+  border: 1px solid #e2e2e2; border-radius: 8px; padding: 8px; margin-bottom: 8px;
+  background: #fafafa;
+}
+.debt-row .field { display: flex; flex-direction: column; font-size: 12px; color: #555; }
+.debt-row .field.full { grid-column: 1 / -1; }
+.debt-row input { min-height: 40px; padding: 6px 8px; border: 1px solid #bbb; border-radius: 6px; font-size: 16px; }
+.debt-row .row-bottom { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; }
+.debt-row .tt { font-weight: 700; color: #0a7d33; }
+.btn-remove { background: #ffecec; border: 1px solid #f3b4b4; color: #b00; border-radius: 6px; padding: 6px 10px; cursor: pointer; }
+.total-line { text-align: right; font-size: 16px; margin-top: 8px; }
+.total-line strong { color: #0a7d33; }
+
+.btn-primary {
+  display: block; width: 100%; margin-top: 12px; padding: 14px;
+  background: #0a7d33; color: #fff; border: none; border-radius: 8px;
+  font-size: 17px; font-weight: 600; cursor: pointer;
+}
+.draft-notice, #history-panel {
+  background: #fff8e1; border: 1px solid #ffe0a3; border-radius: 8px;
+  padding: 8px 10px; margin-bottom: 10px; font-size: 13px;
+}
+.mini { min-height: 44px; }
+.btn-load-last { background:#eef; border:1px solid #bcd; border-radius:6px; padding:4px 8px; cursor:pointer; font-size:12px; }
+.hist-item { padding:6px 4px; border-bottom:1px solid #eee; cursor:pointer; }
+.hist-item:hover { background:#f4f4f4; }
+
+/* ================ A4 PREVIEW (#quote) ================ */
+#quote {
+  --fit: 1;
+  position: relative;
+  max-width: 210mm;
+  margin: 16px auto;
+  background: #fff;
+  padding: 15mm;
+  box-shadow: 0 2px 12px rgba(0,0,0,.15);
+  font-size: calc(13pt * var(--fit));
+  line-height: 1.4;
+}
+/* Dấu treo: đóng góc trên trái, chồng lên tên công ty (nhân viên KD không đóng mộc lên tên) */
+.q-hanging-stamp {
+  position: absolute;
+  left: 6mm; top: 16mm;
+  width: 38mm; height: auto;   /* nét dấu ~3.56cm như file mẫu */
+  opacity: .9;
+  pointer-events: none;
+  z-index: 5;
+}
+.q-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.q-head-left { display: flex; align-items: center; gap: 8px; max-width: 48%; }
+.q-logo { width: 46px; height: auto; }
+.q-company { font-weight: 700; font-size: 0.85em; line-height: 1.15; }
+.q-head-right { text-align: center; font-size: 0.86em; }
+.q-nation { font-weight: 700; }
+.q-motto { font-weight: 700; text-decoration: underline; }
+.q-motto-line { margin-top: 2px; }
+.q-date { text-align: right; font-style: italic; margin: 10px 0 6px; }
+.q-title { text-align: center; font-size: 1.25em; font-weight: 700; margin: 14px 0; text-transform: uppercase; }
+.q-kg { margin: 8px 0; }
+.q-body { margin: 6px 0; text-align: justify; }
+.q-table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.95em; }
+.q-table th, .q-table td { border: 1px solid #000; padding: 4px 6px; text-align: center; vertical-align: middle; }
+.q-table td.num, .q-table th.num { text-align: right; }
+.q-total-label { text-align: right !important; }
+.q-bangchu { font-style: italic; margin: 4px 0 10px; }
+.q-bank { margin: 4px 0; }
+.q-signature { margin: 18px 0 0 auto; text-align: center; width: 62%; }
+.q-sig-title { font-weight: 700; font-size: 0.95em; }
+.q-sig-stack { position: relative; height: 42mm; }
+.q-sign { position: absolute; left: 50%; top: 6mm; transform: translateX(-50%); width: 46mm; }  /* nét ký ~4.6cm như file mẫu */
+.q-signature.kysong .q-sig-stack { height: 90px; }
+.q-signature.kysong .q-sign { display: none; }
+
+/* ================ RESPONSIVE (screen) ================ */
+/* Tờ thư luôn giữ khổ A4 (210mm) rồi tự co (transform scale) vừa bề ngang màn
+   hình — xem trên panel hẹp / iPhone đều gọn, in ra vẫn đúng A4. JS đặt --pv-scale. */
+#preview-wrap {
+  --pv-scale: 1;
+  width: 100%;
+  overflow: hidden;           /* cắt phần thừa khi thu nhỏ, không sinh scroll ngang */
+  display: flex;
+  justify-content: center;
+}
+#quote {
+  flex: 0 0 auto;      /* giữ nguyên khổ A4, KHÔNG để flex bóp méo */
+  width: 210mm;
+  max-width: none;
+  transform: scale(var(--pv-scale));
+  transform-origin: top center;
+}
+
+/* ================ PRINT ================ */
+@media print {
+  @page { size: A4; margin: 8mm; }
+  body { background: #fff; }
+  .no-print { display: none !important; }
+  #preview-wrap { overflow: visible !important; display: block !important; height: auto !important; }
+  #quote { margin: 0; padding: 0; box-shadow: none; width: auto; max-width: 100%; font-size: 13pt; transform: none !important; }
+}
+
+/* Nut ve trang chu MKTT App */
+.mktt-home{display:inline-block;margin:10px auto 0;max-width:560px;color:#0a7d33;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:14px;font-weight:600;text-decoration:none;padding:6px 2px;}
+.mktt-home:active{opacity:.6;}
+@media print{.mktt-home{display:none!important;}}

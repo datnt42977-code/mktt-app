@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>Báo Giá MKTT</title>
+
+<!-- PWA / iOS: cho phép "Thêm vào màn hình chính" chạy như app -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Báo Giá">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="assets/icon-192.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- FORM (ẩn khi print) -->
+<a href="../index.html" class="no-print mktt-home">← MKTT App</a>
+<form id="form" class="no-print" autocomplete="off">
+  <h1>Báo Giá Bê Tông</h1>
+
+  <div class="form-actions">
+    <button type="button" id="btn-new">Tạo báo giá mới</button>
+    <button type="button" id="btn-save-template">Lưu làm mặc định</button>
+    <button type="button" id="btn-history">Lịch sử</button>
+  </div>
+  <div id="history-panel" hidden></div>
+
+  <fieldset>
+    <legend>Thông tin</legend>
+    <label>Ngày báo giá <input type="text" id="f-date" inputmode="numeric" placeholder="dd/mm/yyyy" maxlength="10"></label>
+    <label>Công ty (khách) <input type="text" id="f-customer" list="dl-customers"></label>
+    <label>Công trình <input type="text" id="f-project" list="dl-projects"></label>
+    <label class="checkbox"><input type="checkbox" id="f-contact-default" checked> Người liên hệ mặc định (0903.071.734 Mr Đạt)</label>
+    <label id="f-contact-wrap" hidden>Người liên hệ (SĐT) <input type="text" id="f-contact" placeholder="VD: 0912.345.678 Mr A"></label>
+    <datalist id="dl-customers"></datalist>
+    <datalist id="dl-projects"></datalist>
+  </fieldset>
+
+  <fieldset>
+    <legend>Đơn giá bê tông (VNĐ/m³)</legend>
+    <div class="chip-hint">Gợi ý — bấm để thêm nhanh:</div>
+    <div id="mac-chips" class="chip-row"></div>
+    <div id="mac-list"></div>
+    <button type="button" id="btn-add-mac">+ Thêm mác tự nhập</button>
+  </fieldset>
+
+  <fieldset>
+    <legend>Đơn giá bơm (VNĐ)</legend>
+    <label class="checkbox"><input type="checkbox" id="f-pump-on" checked> Có báo giá bơm</label>
+    <div id="f-pump-wrap">
+      <label>Bơm ngang/cần 37m, tầng 0-4, ca &lt;28m³ <input type="text" id="f-pump1-ca" inputmode="decimal" class="num"></label>
+      <label>Bơm ngang/cần 37m, tầng 0-4, ≥28m³ <input type="text" id="f-pump1-m3" inputmode="decimal" class="num"></label>
+      <label>Bơm ngang/cần 37m, tầng 5-9, ca &lt;28m³ <input type="text" id="f-pump2-ca" inputmode="decimal" class="num"></label>
+      <label>Bơm ngang/cần 37m, tầng 5-9, ≥28m³ <input type="text" id="f-pump2-m3" inputmode="decimal" class="num"></label>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Ghi chú thêm</legend>
+    <label>Thêm dòng ghi chú (nếu có)
+      <textarea id="f-extra" rows="3" placeholder="Mỗi dòng sẽ thành 1 gạch đầu dòng trong phần Ghi chú."></textarea>
+    </label>
+  </fieldset>
+
+  <fieldset>
+    <legend>Tùy chọn</legend>
+    <label class="checkbox"><input type="checkbox" id="f-vat"> Có VAT</label>
+  </fieldset>
+
+  <button type="button" id="btn-print" class="btn-primary">Tạo báo giá (In / Lưu PDF)</button>
+</form>
+
+<!-- PREVIEW A4 -->
+<div id="quote">
+  <img class="q-hanging-stamp" src="assets/stamp.png" alt="Dấu treo">
+  <header class="q-header">
+    <div class="q-logo"><img src="assets/logo.png" alt="MKTT"></div>
+    <div class="q-company">
+      <div class="q-name">CÔNG TY TNHH BÊ TÔNG MÊ KÔNG THƯƠNG TÍN</div>
+      <div class="q-addr">Địa chỉ: 26/7A Chánh Hưng, xã Phước Lộc, Huyện Nhà Bè, TP.HCM</div>
+      <div class="q-info">MST: 0314833098 &nbsp;&nbsp; Email: mekongthuongtin@meinvoice.vn &nbsp;&nbsp; Hotline: 0903.071.734</div>
+    </div>
+  </header>
+
+  <h1 class="q-title">BÁO GIÁ BÊ TÔNG</h1>
+
+  <p class="q-date">Ngày <span class="r" id="q-day">__</span> tháng <span class="r" id="q-month">__</span> năm <span class="r" id="q-year">____</span></p>
+  <p><strong>Công ty:</strong> <span class="r" id="q-customer">________________________</span></p>
+  <p><strong>Công trình:</strong> <span class="r" id="q-project">________________________</span></p>
+
+  <p class="q-greeting">Bê tông Mê Kông Thương Tín chân thành cảm ơn Quý khách hàng đã quan tâm đến sản phẩm của công ty chúng tôi. Chúng tôi hân hạnh gửi đến Quý khách hàng Báo giá bê tông thương phẩm như sau:</p>
+
+  <h2 class="q-section">Đơn giá bê tông:</h2>
+  <table class="q-table">
+    <thead>
+      <tr>
+        <th>STT</th>
+        <th>MÁC BÊ TÔNG<br>Đạt cường độ sau 28 ngày</th>
+        <th>ĐVT</th>
+        <th>ĐỘ SỤT (CM)</th>
+        <th>ĐƠN GIÁ (VNĐ/M³)</th>
+        <th>GHI CHÚ</th>
+      </tr>
+    </thead>
+    <tbody id="q-mac-body"></tbody>
+  </table>
+  <p class="q-vat-note" id="q-vat-note">Giá chưa bao gồm VAT</p>
+
+  <h2 class="q-section">Đơn giá sử dụng phụ gia:</h2>
+  <table class="q-table">
+    <thead>
+      <tr><th>STT</th><th>TÊN, QUY CÁCH PHỤ GIA</th><th>ĐVT</th><th>SỐ LƯỢNG</th><th>ĐƠN GIÁ (VNĐ)</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>01</td><td>Phụ gia 03 ngày đạt 90% mác thiết kế</td><td>M³</td><td>01</td><td class="num">150.000</td></tr>
+      <tr><td>02</td><td>Phụ gia 07 ngày đạt 90% mác thiết kế</td><td>M³</td><td>01</td><td class="num">70.000</td></tr>
+      <tr><td>03</td><td>Phụ gia 14 ngày đạt 90% mác thiết kế</td><td>M³</td><td>01</td><td class="num">50.000</td></tr>
+      <tr><td>04</td><td>Phụ gia chống thấm B4</td><td>M³</td><td>01</td><td class="num">50.000</td></tr>
+      <tr><td>05</td><td>Phụ gia chống thấm B6</td><td>M³</td><td>01</td><td class="num">70.000</td></tr>
+      <tr><td>06</td><td>Phụ gia chống thấm B8</td><td>M³</td><td>01</td><td class="num">90.000</td></tr>
+      <tr><td>07</td><td>Phụ gia chống thấm B10</td><td>M³</td><td>01</td><td class="num">110.000</td></tr>
+      <tr><td>08</td><td>Phụ gia chống thấm B12</td><td>M³</td><td>01</td><td class="num">130.000</td></tr>
+    </tbody>
+  </table>
+
+  <div class="q-notes">
+    <p><strong>Ghi chú:</strong></p>
+    <ul id="q-notes-list">
+      <li>Nếu sử dụng Đá Mi thì đơn giá Cộng 120.000đ/m³.</li>
+      <li>Nếu phát sinh tăng cấp độ sụt lên thêm mỗi 2cm thì đơn giá trên cộng thêm 20.000 đồng/m³.</li>
+      <li>Nếu Tăng/Giảm cấp mác thì đơn giá Cộng/Trừ 50.000đ/m³.</li>
+      <li>Xe Nước cộng 700.000đ/Xe.</li>
+      <li>Trường hợp Bên mua đặt hàng bê tông cho mỗi lần đổ nhỏ lẻ có khối lượng mỗi xe:
+        <ul>
+          <li>Khối lượng cung cấp 3m³ ≤ 01 đợt &lt; 4,5m³ cộng thêm 350.000đ/đợt.</li>
+          <li>Khối lượng cung cấp 2m³ &lt; 01 đợt &lt; 3m³ cộng thêm 450.000đ/đợt.</li>
+          <li>Khối lượng cung cấp 01 đợt ≤ 2m³ cộng thêm 550.000đ/đợt.</li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+
+  <h2 class="q-section" id="q-pump-heading">Đơn giá sử dụng bơm:</h2>
+  <table class="q-table" id="q-pump-table">
+    <thead>
+      <tr>
+        <th>STT</th><th>LOẠI BƠM</th><th>DIỄN GIẢI</th>
+        <th>Ca Bơm &lt; 28m³</th><th>Ca Bơm ≥ 28m³</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td rowspan="2">01</td>
+        <td rowspan="2">Bơm ngang hoặc Bơm cần 37m</td>
+        <td>Tầng 0 đến tầng 4</td>
+        <td class="num"><span class="r" id="q-pump1-ca">_________</span>đ/Ca</td>
+        <td class="num"><span class="r" id="q-pump1-m3">_______</span>đ/m³</td>
+      </tr>
+      <tr>
+        <td>Tầng 5 đến tầng 9</td>
+        <td class="num"><span class="r" id="q-pump2-ca">_________</span>đ/Ca</td>
+        <td class="num"><span class="r" id="q-pump2-m3">_______</span>đ/m³</td>
+      </tr>
+      <tr>
+        <td>02</td>
+        <td>Bơm cột, vách, đà, dầm, thang máy…</td>
+        <td></td>
+        <td>Đơn giá trên cộng thêm 500.000đ/ca</td>
+        <td>Đơn giá trên cộng thêm 15.000đ/m³</td>
+      </tr>
+      <tr><td>03</td><td colspan="4">Bơm ngang đường ống dài hơn 80m thì cứ mỗi 30m tăng thêm 30.000đ/m³.</td></tr>
+      <tr><td>04</td><td>Ca hoãn, dự phòng, ca chờ (chờ ≥ 4 giờ)</td><td colspan="3">Tính bằng 01 ca bơm</td></tr>
+      <tr><td>05</td><td>Những hạng mục nhỏ lẻ, khối lượng ít.</td><td colspan="3">Nếu thời gian bơm quá 4 tiếng kể từ lúc có bê tông. Tính thêm 1 ca bơm mới.</td></tr>
+      <tr><td>06</td><td colspan="4">Trường hợp bơm (bơm cần hoặc bơm ngang) đã tới đặt tại công trường mà dời bơm theo yêu cầu của bên mua thì ngoài đơn giá bơm phải trả, mỗi lần dời bơm sẽ tính thêm 01 ca bơm.</td></tr>
+    </tbody>
+  </table>
+
+  <h2 class="q-section">Hình Thức Thanh Toán:</h2>
+  <p>- Thanh toán trước khi cấp hàng.</p>
+  <p>Mọi thông tin chi tiết xin liên hệ trực tiếp với chúng tôi theo số điện thoại sau: <strong id="q-contact">0903.071.734 Mr Đạt</strong></p>
+
+  <div class="q-signature">
+    <div class="q-sig-col">
+      <div class="q-sig-title">Xác nhận của Khách hàng</div>
+    </div>
+    <div class="q-sig-col">
+      <div class="q-sig-title">CÔNG TY TNHH BÊ TÔNG<br>MÊ KÔNG THƯƠNG TÍN</div>
+      <div class="q-sig-stack">
+        <img class="q-signature-img" src="assets/signature.png" alt="Chữ ký Nguyễn Tấn Đạt">
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="mac-price-ladder.js"></script>
+<script src="quotes-store.js"></script>
+<script src="quote-actions.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

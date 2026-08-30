@@ -1,0 +1,314 @@
+/* ================ RESET & BASE ================ */
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: "Times New Roman", Times, serif;
+  font-size: 11pt;
+  color: #000;
+  background: #f4f4f4;
+}
+
+/* ================ FORM (screen only) ================ */
+#form {
+  max-width: 480px;
+  margin: 0 auto;
+  /* Safe-area: chừa lề cho Dynamic Island / notch khi chạy standalone trên iPhone */
+  padding: calc(12px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left));
+  background: #fff;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+#form h1 { font-size: 20px; margin: 0 0 12px; }
+#form fieldset {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 0 0 12px;
+}
+#form legend { font-weight: 600; padding: 0 6px; }
+#form label {
+  display: block;
+  margin: 8px 0;
+  font-size: 14px;
+}
+#form input[type="text"],
+#form input[type="number"] {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 10px;
+  margin-top: 4px;
+  border: 1px solid #bbb;
+  border-radius: 6px;
+  font-size: 16px;
+}
+#form label.checkbox { display: flex; align-items: center; gap: 8px; }
+#form label.checkbox input { width: 20px; height: 20px; min-height: 20px; }
+#form button {
+  min-height: 48px;
+  padding: 0 16px;
+  border: 1px solid #888;
+  background: #eee;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+}
+#form #btn-add-mac { margin-top: 8px; width: 100%; }
+.chip-hint { font-size: 13px; color: #666; margin: 4px 0 6px; }
+.chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.chip {
+  padding: 6px 12px;
+  border: 1px solid #1a73e8;
+  background: #eaf2fd;
+  color: #1a73e8;
+  border-radius: 16px;
+  font-size: 14px;
+  cursor: pointer;
+  min-height: 32px;
+}
+.chip:active { background: #1a73e8; color: #fff; }
+#form .btn-primary {
+  background: #1a73e8;
+  color: #fff;
+  border-color: #1a73e8;
+  width: 100%;
+  margin-top: 8px;
+  font-weight: 600;
+}
+.extra-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto auto auto;
+  gap: 6px;
+  margin-top: 6px;
+  align-items: center;
+}
+.extra-row select[data-field="slump"] {
+  min-height: 36px;
+  padding: 0 6px;
+}
+.extra-row .btn-lock {
+  width: 36px;
+  min-height: 36px;
+  padding: 0;
+  background: #fff8e1;
+  border-color: #e0a800;
+  font-size: 15px;
+}
+.extra-row .btn-lock[hidden] { display: none; }
+.extra-row .btn-del {
+  width: 36px;
+  min-height: 36px;
+  padding: 0;
+  background: #fee;
+  border-color: #d44;
+  color: #d44;
+  font-size: 18px;
+}
+
+/* ---------- action bar: template / lịch sử ---------- */
+.form-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 12px; }
+.form-actions button {
+  flex: 1 1 auto;
+  min-height: 36px;
+  padding: 6px 10px;
+  border: 1px solid #1a73e8;
+  background: #eaf2fd;
+  color: #1a73e8;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.form-actions button:active { background: #1a73e8; color: #fff; }
+
+/* ---------- history panel ---------- */
+#history-panel {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-bottom: 12px;
+  max-height: 40vh;
+  overflow-y: auto;
+}
+.hist-empty { color: #666; font-size: 14px; margin: 4px 0; }
+.hist-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid #eee;
+}
+.hist-row:last-child { border-bottom: none; }
+.hist-label { flex: 1 1 auto; font-size: 14px; word-break: break-word; }
+.hist-row button {
+  min-height: 32px;
+  padding: 4px 10px;
+  border: 1px solid #1a73e8;
+  background: #fff;
+  color: #1a73e8;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.hist-row .hist-del { border-color: #d44; color: #d44; }
+
+/* ================ PREVIEW A4 ================ */
+#quote {
+  --fit: 1;
+  width: 210mm;
+  min-height: 297mm;
+  padding: 15mm 15mm 15mm 15mm;
+  margin: 12px auto;
+  background: #fff;
+  box-shadow: 0 0 6px rgba(0,0,0,.15);
+  color: #000;
+  position: relative;
+  font-size: calc(11pt * var(--fit));
+}
+
+/* Dấu treo — top-left hanging seal overlapping header */
+.q-hanging-stamp {
+  position: absolute;
+  top: 4mm;
+  left: 4mm;
+  height: 105pt;
+  width: auto;
+  z-index: 2;
+  pointer-events: none;
+}
+/* Logo dịch phải để chừa chỗ cho mộc, mộc đè 1/4 bên phải lên logo */
+.q-header { padding-left: 75pt; }
+
+.q-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1.5pt solid #000;
+  padding-bottom: 6px;
+}
+.q-logo img { height: 70px; width: auto; display: block; }
+.q-company { flex: 1; }
+.q-name { font-weight: bold; font-size: calc(12pt * var(--fit)); }
+.q-addr { font-size: calc(10pt * var(--fit)); }
+.q-info { font-size: calc(10pt * var(--fit)); }
+
+.q-title {
+  text-align: center;
+  font-size: calc(18pt * var(--fit));
+  font-weight: bold;
+  margin: calc(10pt * var(--fit)) 0 calc(6pt * var(--fit));
+}
+.q-date { text-align: center; margin: calc(4pt * var(--fit)) 0; }
+
+.q-greeting { text-align: justify; margin: calc(8pt * var(--fit)) 0; }
+
+.q-section {
+  color: #2D74B5;
+  font-size: calc(12pt * var(--fit));
+  font-weight: bold;
+  margin: calc(10pt * var(--fit)) 0 calc(4pt * var(--fit));
+}
+
+.q-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: calc(10.5pt * var(--fit));
+}
+.q-table th, .q-table td {
+  border: 0.75pt solid #000;
+  padding: calc(3pt * var(--fit)) calc(4pt * var(--fit));
+  vertical-align: middle;
+}
+.q-table th {
+  background: #f0f0f0;
+  font-weight: bold;
+  text-align: center;
+}
+.q-table td.num, .q-table th:nth-child(5) { text-align: right; }
+.q-table td:first-child { text-align: center; }
+
+.q-vat-note { font-style: italic; margin: calc(4pt * var(--fit)) 0 0; }
+
+.q-notes { font-size: calc(10.5pt * var(--fit)); margin: calc(6pt * var(--fit)) 0; }
+.q-notes ul { padding-left: 18pt; margin: calc(4pt * var(--fit)) 0; }
+
+.q-signature {
+  display: flex;
+  justify-content: space-between;
+  margin-top: calc(24pt * var(--fit));
+}
+.q-sig-col {
+  width: 45%;
+  text-align: center;
+}
+.q-sig-title {
+  font-weight: bold;
+}
+.q-sig-stack {
+  display: flex;
+  justify-content: center;
+  margin-top: 4pt; /* ngay dưới tiêu đề công ty */
+  height: 240pt;
+  overflow: hidden;
+}
+/* Crop phần trắng phía trên của ảnh chữ ký (ảnh gốc có nhiều khoảng trắng
+   trên đầu, chữ ký + tên nằm ở phần dưới). Phóng ảnh lên lớn rồi dùng
+   margin-top âm + overflow hidden để chỉ hiện phần chữ ký + tên. */
+.q-signature-img {
+  height: 420pt;
+  width: auto;
+  max-width: none;
+  margin-top: -180pt;
+}
+
+/* Red editable text on screen */
+.r { color: #FF0000; }
+
+/* ================ PRINT ================ */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 8mm;
+  }
+  html, body, #quote, .q-hanging-stamp, .q-signature-img, .q-logo img {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+  body { background: #fff; }
+  .no-print, #form { display: none !important; }
+  #quote {
+    width: 100%;
+    min-height: auto;
+    padding: 0;
+    margin: 0;
+    box-shadow: none;
+  }
+  /* red → black when printing */
+  .r { color: #000 !important; }
+  /* avoid splitting tables across pages awkwardly */
+  .q-table { page-break-inside: auto; }
+  .q-table tr { page-break-inside: avoid; }
+  .q-section { page-break-after: avoid; }
+  /* chữ ký phải giữ nguyên 1 cục, không tách trang */
+  .q-signature { page-break-inside: avoid; break-inside: avoid; }
+}
+
+/* ================ MOBILE ================ */
+@media (max-width: 800px) {
+  #quote {
+    width: 100%;
+    min-height: auto;
+    padding: 12px;
+    box-shadow: none;
+    font-size: 10pt;
+  }
+  .q-header { flex-direction: column; text-align: center; gap: 6px; }
+  .q-logo img { height: 60px; }
+  .q-table { font-size: 9.5pt; }
+}
+
+/* Nut ve trang chu MKTT App */
+.mktt-home{display:inline-block;margin:10px auto 0;max-width:560px;color:#0a7d33;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:14px;font-weight:600;text-decoration:none;padding:6px 2px;}
+.mktt-home:active{opacity:.6;}
+@media print{.mktt-home{display:none!important;}}

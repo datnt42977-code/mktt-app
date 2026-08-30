@@ -1,0 +1,17 @@
+{
+  "name": "MKTT App",
+  "short_name": "MKTT App",
+  "description": "Bộ công cụ Mê Kông Thương Tín — Báo giá, Đề nghị thanh toán.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a7d33",
+  "theme_color": "#0a7d33",
+  "lang": "vi",
+  "icons": [
+    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
