@@ -294,13 +294,21 @@
     q.style.width = '194mm';   /* = 210mm − lề in 8mm×2 (bề rộng thực khi in) */
     q.style.maxWidth = 'none';
     q.style.padding = '0';
-    let lo = 0.5, hi = 1.15, best = lo;
-    for (let i = 0; i < 18; i++) {
+    q.style.setProperty('--zoom', '1');
+    // B1: co font (--fit) trong dải rộng
+    let lo = 0.35, hi = 1.15, best = lo;
+    for (let i = 0; i < 20; i++) {
       const mid = (lo + hi) / 2;
       q.style.setProperty('--fit', mid.toFixed(3));
       if (q.scrollHeight <= maxPx) { best = mid; lo = mid; } else { hi = mid; }
     }
     q.style.setProperty('--fit', best.toFixed(3));
+    // B2: nếu font đã co mà VẪN dài (bảng/ảnh cứng), co toàn bộ bằng zoom
+    let zoom = 1;
+    if (q.scrollHeight > maxPx) {
+      zoom = Math.max(0.5, (maxPx - 2) / q.scrollHeight);
+      q.style.setProperty('--zoom', zoom.toFixed(3));
+    }
     // khôi phục style màn hình
     q.style.width = prev.w; q.style.maxWidth = prev.mw; q.style.padding = prev.pad; q.style.transform = prev.tf;
   }
