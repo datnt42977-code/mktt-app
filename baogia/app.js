@@ -450,6 +450,18 @@
     syncAll();
   }
 
+  // ---------- API cho OCR: nạp danh sách mác ----------
+  window.__baogiaSetMacs = function (arr) {
+    if (!Array.isArray(arr) || !arr.length) return;
+    rows = arr.slice(0, MAX_ROWS).map((r) => ({
+      name: String(r.name || ''),
+      price: formatVN(String(r.price || '')),
+      slump: normalizeSlump(r.slump),
+      manual: true, // AI đưa giá cụ thể → coi như tự điền, không auto-tính theo mác 250
+    }));
+    applyLadder(); renderRowList(); syncAll(); saveState();
+  };
+
   // ---------- persistence (bản nháp đang gõ) ----------
   function saveState() {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(collectState())); } catch (_) {}

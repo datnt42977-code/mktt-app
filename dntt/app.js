@@ -215,6 +215,19 @@
     renderRows(); syncAll();
   }
 
+  // ---------- API cho OCR: nạp rows tự động ----------
+  window.__dnttSetRows = function (arr) {
+    if (!Array.isArray(arr) || !arr.length) return;
+    rows = arr.slice(0, MAX_ROWS).map((r) => ({
+      ngay_cap: r.ngay_cap || formatToday(),
+      mac: r.mac || '',
+      kl: String(r.kl || ''),
+      dg: String(r.dg || ''),
+      pt: String(r.pt || '0'),
+    }));
+    renderRows(); onChange();
+  };
+
   // ---------- persistence ----------
   let saveTimer = null;
   function onChange() {

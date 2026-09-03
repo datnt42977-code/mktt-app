@@ -30,6 +30,7 @@
   </div>
   <div id="draft-notice" class="draft-notice" hidden></div>
   <div id="history-panel" hidden></div>
+  <div id="ocr-slot"></div>
 
   <fieldset>
     <legend>Thông tin chung</legend>
@@ -129,6 +130,28 @@
 </div>
 </div><!-- /preview-wrap -->
 
+<script src="../shared/gemini-ocr.js"></script>
 <script src="app.js"></script>
+<script>
+  // OCR: đọc ảnh → merge vào form ĐNTT hiện tại
+  window.addEventListener('load', () => {
+    if (!window.MkttOCR) return;
+    window.MkttOCR.mount({
+      containerId: 'ocr-slot',
+      module: 'dntt',
+      onResult(data) {
+        if (!data) return;
+        if (data.customer) document.getElementById('f-customer').value = String(data.customer).toUpperCase();
+        if (data.project) document.getElementById('f-project').value = String(data.project);
+        // Nếu có rows → nạp vào bảng công nợ (giữ ngày/mac/kl/dg/pt)
+        if (Array.isArray(data.rows) && data.rows.length && window.__dnttSetRows) {
+          window.__dnttSetRows(data.rows);
+        }
+        // Trigger sync + save nháp
+        document.getElementById('f-customer').dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    });
+  });
+</script>
 </body>
 </html>

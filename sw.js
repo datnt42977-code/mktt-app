@@ -1,5 +1,5 @@
 // MKTT App service worker — cache launcher + module Báo Giá + ĐNTT (offline).
-const VERSION = 'v8';
+const VERSION = 'v9';
 const CACHE = 'mktt-app-' + VERSION;
 
 const ASSETS = [
@@ -33,6 +33,9 @@ const ASSETS = [
   'dntt/assets/signature.png',
   'dntt/assets/sign-tight.png',
   'dntt/assets/banner.png',
+
+  // Shared
+  'shared/gemini-ocr.js',
 ];
 
 // Tài liệu/mã nguồn: network-first (luôn lấy bản mới, offline fallback cache)

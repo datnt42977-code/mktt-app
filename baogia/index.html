@@ -30,6 +30,7 @@
     <button type="button" id="btn-history">Lịch sử</button>
   </div>
   <div id="history-panel" hidden></div>
+  <div id="ocr-slot"></div>
 
   <fieldset>
     <legend>Thông tin</legend>
@@ -202,5 +203,24 @@
 <script src="quotes-store.js"></script>
 <script src="quote-actions.js"></script>
 <script src="app.js"></script>
+<script src="../shared/gemini-ocr.js"></script>
+<script>
+  window.addEventListener('load', () => {
+    if (!window.MkttOCR) return;
+    window.MkttOCR.mount({
+      containerId: 'ocr-slot',
+      module: 'baogia',
+      onResult(data) {
+        if (!data) return;
+        if (data.customer) document.getElementById('f-customer').value = String(data.customer).toUpperCase();
+        if (data.project) document.getElementById('f-project').value = String(data.project);
+        if (Array.isArray(data.macs) && data.macs.length && window.__baogiaSetMacs) {
+          window.__baogiaSetMacs(data.macs);
+        }
+        document.getElementById('f-customer').dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    });
+  });
+</script>
 </body>
 </html>
