@@ -70,7 +70,6 @@ body {
 /* ================ A4 PREVIEW (#quote) ================ */
 #quote {
   --fit: 1;
-  --zoom: 1;
   position: relative;
   max-width: 210mm;
   margin: 16px auto;
@@ -138,7 +137,7 @@ body {
   body { background: #fff; }
   .no-print { display: none !important; }
   #preview-wrap { overflow: visible !important; display: block !important; height: auto !important; }
-  #quote { margin: 0; padding: 0; box-shadow: none; width: auto; max-width: 100%; font-size: calc(13pt * var(--fit)); transform: none !important; zoom: var(--zoom); }
+  #quote { margin: 0; padding: 0; box-shadow: none; width: auto; max-width: 100%; font-size: 13pt; transform: none !important; }
 }
 
 /* Nut ve trang chu MKTT App */
