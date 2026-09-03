@@ -174,8 +174,8 @@ Quy tắc:
         <label class="ocr-drop" id="ocr-drop">
           <input type="file" accept="image/*" id="ocr-file">
           <div><b>📎 Chọn ảnh</b> hoặc kéo thả vào đây</div>
-          <div style="font-size:11px;margin-top:4px;color:#8a9">Hoặc dán ảnh bằng Ctrl/⌘+V</div>
         </label>
+        <button type="button" class="b-ghost" data-act="paste" style="width:100%;margin-top:6px;padding:11px;border-radius:10px;border:0;font-size:14px;font-weight:600;background:#eaf2ee;color:#0a7d33;cursor:pointer;">📋 Dán ảnh từ clipboard</button>
         <div id="ocr-preview-wrap"></div>
         <div class="ocr-status" id="ocr-status" hidden></div>
         <div class="row">
@@ -222,10 +222,33 @@ Quy tắc:
     };
     document.addEventListener('paste', onPaste);
 
+    async function pasteFromClipboard() {
+      try {
+        if (!navigator.clipboard || !navigator.clipboard.read) {
+          setStatus('❌ Trình duyệt không hỗ trợ dán trực tiếp — anh dùng ⌘V hoặc chọn ảnh.', 'err');
+          return;
+        }
+        const items = await navigator.clipboard.read();
+        for (const it of items) {
+          const imgType = (it.types || []).find((t) => t.startsWith('image/'));
+          if (imgType) {
+            const blob = await it.getType(imgType);
+            const file = new File([blob], 'clipboard.' + imgType.split('/')[1], { type: imgType });
+            acceptFile(file);
+            return;
+          }
+        }
+        setStatus('❌ Clipboard không có ảnh — anh copy ảnh trước rồi bấm lại.', 'err');
+      } catch (err) {
+        setStatus('❌ Không đọc được clipboard: ' + (err.message || err) + ' (iOS có thể cần cấp quyền)', 'err');
+      }
+    }
+
     mask.addEventListener('click', async (e) => {
       if (e.target === mask) close();
       const act = e.target.dataset && e.target.dataset.act;
       if (act === 'cancel') close();
+      if (act === 'paste') { pasteFromClipboard(); return; }
       if (act === 'key') {
         clearKey();
         const k = await openKeyDialog();
