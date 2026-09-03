@@ -60,6 +60,14 @@
   .card.soon .ico { background: #e2ebe3; filter: grayscale(.4); opacity: .7; }
   .card.soon .badge { align-self: flex-start; font-size: 10px; font-weight: 700; background: #d6e2d8; color: #5c7565; padding: 3px 9px; border-radius: 999px; margin-top: auto; }
   .foot { text-align: center; color: #7d908a; font-size: 11.5px; margin-top: 24px; }
+  .refresh-btn {
+    margin-left: auto; border: 0; background: rgba(255,255,255,.18); color: #fff;
+    width: 40px; height: 40px; border-radius: 12px; font-size: 20px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(4px); transition: transform .3s ease, background .15s;
+  }
+  .refresh-btn:active { background: rgba(255,255,255,.32); }
+  .refresh-btn.spin { transform: rotate(360deg); }
 </style>
 </head>
 <body>
@@ -69,6 +77,7 @@
       <div class="t1">MKTT App</div>
       <div class="t2">Bộ công cụ Mê Kông Thương Tín</div>
     </div>
+    <button id="btn-refresh" class="refresh-btn" title="Cập nhật app" aria-label="Cập nhật app">↻</button>
   </div>
   <div class="company">CÔNG TY TNHH BÊ TÔNG MÊ KÔNG THƯƠNG TÍN</div>
 
@@ -103,6 +112,21 @@
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
     }
+    document.getElementById('btn-refresh').addEventListener('click', async (e) => {
+      const btn = e.currentTarget;
+      btn.classList.add('spin'); btn.disabled = true;
+      try {
+        if ('serviceWorker' in navigator) {
+          const regs = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(regs.map(r => r.unregister()));
+        }
+        if (window.caches) {
+          const keys = await caches.keys();
+          await Promise.all(keys.map(k => caches.delete(k)));
+        }
+      } catch (_) {}
+      setTimeout(() => location.reload(), 350);
+    });
   </script>
 </body>
 </html>
