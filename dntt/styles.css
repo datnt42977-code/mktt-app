@@ -106,11 +106,11 @@ body {
 .q-total-label { text-align: right !important; }
 .q-bangchu { font-style: italic; margin: 4px 0 10px; }
 .q-bank { margin: 4px 0; }
-.q-signature { margin: 18px 0 0 auto; text-align: center; width: 62%; }
+.q-signature { margin: 6px 0 0 auto; text-align: center; width: 62%; }
 .q-sig-title { font-weight: 700; font-size: 0.95em; }
-.q-sig-stack { position: relative; height: 42mm; }
-.q-sign { position: absolute; left: 50%; top: 6mm; transform: translateX(-50%); width: 46mm; }  /* nét ký ~4.6cm như file mẫu */
-.q-signature.kysong .q-sig-stack { height: 90px; }
+.q-sig-stack { position: relative; height: 32mm; }
+.q-sign { position: absolute; left: 50%; top: 3mm; transform: translateX(-50%); width: 40mm; }  /* nét ký ~4cm */
+.q-signature.kysong .q-sig-stack { height: 70px; }
 .q-signature.kysong .q-sign { display: none; }
 
 /* ================ RESPONSIVE (screen) ================ */
