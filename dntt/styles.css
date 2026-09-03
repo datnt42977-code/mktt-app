@@ -53,6 +53,19 @@ body {
 .total-line { text-align: right; font-size: 16px; margin-top: 8px; }
 .total-line strong { color: #0a7d33; }
 
+.fontsize-ctrl {
+  display: flex; align-items: center; gap: 10px; justify-content: center;
+  background: #f0f4f2; border: 1px solid #d5e2da; border-radius: 10px;
+  padding: 8px 12px; margin: 12px 0 4px; font-size: 14px; color: #345;
+}
+.fontsize-ctrl button {
+  min-width: 44px; min-height: 40px; border: 1px solid #0a7d33; background: #fff;
+  color: #0a7d33; border-radius: 8px; font-size: 15px; font-weight: 700; cursor: pointer;
+}
+.fontsize-ctrl button:active { background: #eaf3ee; }
+.fontsize-ctrl #font-val { min-width: 26px; text-align: center; font-size: 16px; color: #0a7d33; }
+.fontsize-ctrl .mini { min-width: 40px; font-weight: 400; }
+
 .btn-primary {
   display: block; width: 100%; margin-top: 12px; padding: 14px;
   background: #0a7d33; color: #fff; border: none; border-radius: 8px;
@@ -83,13 +96,14 @@ body {
 /* ================ A4 PREVIEW (#quote) ================ */
 #quote {
   --fit: 1;
+  --base-pt: 12;
   position: relative;
   max-width: 210mm;
   margin: 16px auto;
   background: #fff;
   padding: 15mm;
   box-shadow: 0 2px 12px rgba(0,0,0,.15);
-  font-size: calc(12pt * var(--fit));
+  font-size: calc(var(--base-pt) * 1pt * var(--fit));
   line-height: 1.4;
 }
 /* Dấu treo: đóng góc trên trái, chồng lên tên công ty (nhân viên KD không đóng mộc lên tên) */
@@ -150,7 +164,7 @@ body {
   body { background: #fff; }
   .no-print { display: none !important; }
   #preview-wrap { overflow: visible !important; display: block !important; height: auto !important; }
-  #quote { margin: 0; padding: 0; box-shadow: none; width: auto; max-width: 100%; font-size: 12pt; transform: none !important; }
+  #quote { margin: 0; padding: 0; box-shadow: none; width: auto; max-width: 100%; font-size: calc(var(--base-pt) * 1pt); transform: none !important; }
 }
 
 /* Nut ve trang chu MKTT App */

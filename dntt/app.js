@@ -344,37 +344,28 @@
     panel.hidden = false;
   }
 
-  // ---------- co nội dung gọn trong 1 trang A4 (chỉnh --fit = cỡ chữ) ----------
-  function fitOnePage() {
-    const q = $('quote');
-    if (!q) return;
-    const pxPerMm = 96 / 25.4;
-    // A4 cao 297mm − lề in 8mm×2 = 281mm vùng in. Chừa 3mm buffer cho chắc.
-    const maxPx = 278 * pxPerMm;
-    // Đo ở đúng hình học lúc IN: khổ 210mm, padding 0, không transform.
-    const prev = { w: q.style.width, mw: q.style.maxWidth, pad: q.style.padding, tf: q.style.transform, fit: q.style.getPropertyValue('--fit') };
-    q.style.transform = 'none';
-    q.style.width = '194mm';   /* = 210mm − lề in 8mm×2 (bề rộng thực khi in) */
-    q.style.maxWidth = 'none';
-    q.style.padding = '0';
-    q.style.setProperty('--zoom', '1');
-    // B1: co font (--fit) trong dải rộng
-    let lo = 0.35, hi = 1.15, best = lo;
-    for (let i = 0; i < 20; i++) {
-      const mid = (lo + hi) / 2;
-      q.style.setProperty('--fit', mid.toFixed(3));
-      if (q.scrollHeight <= maxPx) { best = mid; lo = mid; } else { hi = mid; }
-    }
-    q.style.setProperty('--fit', best.toFixed(3));
-    // B2: nếu font đã co mà VẪN dài (bảng/ảnh cứng), co toàn bộ bằng zoom
-    let zoom = 1;
-    if (q.scrollHeight > maxPx) {
-      zoom = Math.max(0.5, (maxPx - 2) / q.scrollHeight);
-      q.style.setProperty('--zoom', zoom.toFixed(3));
-    }
-    // khôi phục style màn hình
-    q.style.width = prev.w; q.style.maxWidth = prev.mw; q.style.padding = prev.pad; q.style.transform = prev.tf;
+  // ---------- cỡ chữ do NGƯỜI DÙNG chỉnh (A- / A+), không auto co ----------
+  const FONT_KEY = 'mktt_dntt_font_pt_v1';
+  const FONT_MIN = 8, FONT_MAX = 16, FONT_DEFAULT = 12;
+  function getFontPt() {
+    let v = parseInt(localStorage.getItem(FONT_KEY) || '', 10);
+    if (!Number.isFinite(v)) v = FONT_DEFAULT;
+    return Math.min(FONT_MAX, Math.max(FONT_MIN, v));
   }
+  function applyFontPt(pt) {
+    const q = $('quote');
+    if (q) { q.style.setProperty('--base-pt', String(pt)); q.style.setProperty('--fit', '1'); }
+    const label = $('font-val');
+    if (label) label.textContent = String(pt);
+  }
+  function setFontPt(pt) {
+    pt = Math.min(FONT_MAX, Math.max(FONT_MIN, pt));
+    try { localStorage.setItem(FONT_KEY, String(pt)); } catch (_) {}
+    applyFontPt(pt);
+    fitPreview();
+  }
+  // giữ tên cũ để các nơi gọi không vỡ — chỉ đảm bảo cỡ chữ user được áp
+  function fitOnePage() { applyFontPt(getFontPt()); }
 
   // ---------- fit A4 preview vào bề ngang màn hình ----------
   function fitPreview() {
@@ -468,6 +459,11 @@
     $('f-kysong').addEventListener('change', onChange);
     const du = $('f-dutruoc');
     if (du) du.addEventListener('input', () => { du.value = du.value ? fmtVND(digitsOnly(du.value)) : ''; onChange(); });
+    // Cỡ chữ PDF — người dùng tự chỉnh
+    applyFontPt(getFontPt());
+    if ($('btn-font-dec')) $('btn-font-dec').addEventListener('click', () => setFontPt(getFontPt() - 1));
+    if ($('btn-font-inc')) $('btn-font-inc').addEventListener('click', () => setFontPt(getFontPt() + 1));
+    if ($('btn-font-reset')) $('btn-font-reset').addEventListener('click', () => setFontPt(FONT_DEFAULT));
     const fd = $('f-date');
     fd.addEventListener('input', () => { maskDate(fd); onChange(); });
     $('f-customer').addEventListener('change', () => rememberCustomer($('f-customer').value));
