@@ -76,7 +76,7 @@ body {
   background: #fff;
   padding: 15mm;
   box-shadow: 0 2px 12px rgba(0,0,0,.15);
-  font-size: calc(13pt * var(--fit));
+  font-size: calc(12pt * var(--fit));
   line-height: 1.4;
 }
 /* Dấu treo: đóng góc trên trái, chồng lên tên công ty (nhân viên KD không đóng mộc lên tên) */
@@ -137,7 +137,7 @@ body {
   body { background: #fff; }
   .no-print { display: none !important; }
   #preview-wrap { overflow: visible !important; display: block !important; height: auto !important; }
-  #quote { margin: 0; padding: 0; box-shadow: none; width: auto; max-width: 100%; font-size: 13pt; transform: none !important; }
+  #quote { margin: 0; padding: 0; box-shadow: none; width: auto; max-width: 100%; font-size: 12pt; transform: none !important; }
 }
 
 /* Nut ve trang chu MKTT App */
