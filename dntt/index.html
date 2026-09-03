@@ -64,7 +64,11 @@
     <legend>Bảng công nợ</legend>
     <div id="debt-list"></div>
     <button type="button" id="btn-add-row">+ Thêm dòng</button>
-    <div class="total-line">Tổng cộng: <strong id="f-total">0</strong> đ</div>
+    <label>Tiền dư đợt trước (trừ vào đợt này)
+      <input type="text" id="f-dutruoc" inputmode="numeric" class="money" placeholder="0" value="">
+    </label>
+    <div class="total-line">Tổng công nợ: <strong id="f-total">0</strong> đ</div>
+    <div class="total-line" id="f-conlai-line" hidden>Còn phải thanh toán: <strong id="f-conlai">0</strong> đ</div>
   </fieldset>
 
   <button type="button" id="btn-print" class="btn-primary">Xuất PDF (In / Lưu)</button>
@@ -112,6 +116,14 @@
       <tr>
         <td colspan="5" class="q-total-label"><strong>TỔNG CỘNG:</strong></td>
         <td class="num"><strong id="q-total">0đ</strong></td>
+      </tr>
+      <tr id="q-dutruoc-row" hidden>
+        <td colspan="5" class="q-total-label">Trừ tiền dư đợt trước:</td>
+        <td class="num" id="q-dutruoc">0đ</td>
+      </tr>
+      <tr id="q-conlai-row" hidden>
+        <td colspan="5" class="q-total-label"><strong>CÒN PHẢI THANH TOÁN:</strong></td>
+        <td class="num"><strong id="q-conlai">0đ</strong></td>
       </tr>
     </tfoot>
   </table>

@@ -210,9 +210,25 @@
       body.appendChild(tr);
     });
     const total = totalAmount();
+    const duTruoc = parseMoney(($('f-dutruoc') && $('f-dutruoc').value) || '0');
+    const conLai = Math.max(0, total - duTruoc);
     setText('q-total', fmtVND(total) + 'đ');
     setText('f-total', fmtVND(total));
-    setText('q-bangchu', soThanhChu(total));
+
+    // Dòng tiền dư + còn lại (chỉ hiện khi có nhập tiền dư)
+    const duRow = $('q-dutruoc-row'), conRow = $('q-conlai-row');
+    const conLaiLine = $('f-conlai-line');
+    if (duTruoc > 0) {
+      if (duRow) { duRow.hidden = false; setText('q-dutruoc', '-' + fmtVND(duTruoc) + 'đ'); }
+      if (conRow) { conRow.hidden = false; setText('q-conlai', fmtVND(conLai) + 'đ'); }
+      if (conLaiLine) { conLaiLine.hidden = false; setText('f-conlai', fmtVND(conLai)); }
+      setText('q-bangchu', soThanhChu(conLai));
+    } else {
+      if (duRow) duRow.hidden = true;
+      if (conRow) conRow.hidden = true;
+      if (conLaiLine) conLaiLine.hidden = true;
+      setText('q-bangchu', soThanhChu(total));
+    }
 
     // ký sống → ẩn chữ ký + dấu treo để in ra ký tay, đóng dấu thật
     const kysong = $('f-kysong').checked;
@@ -232,6 +248,7 @@
       tieude: $('f-tieude').value, date: $('f-date').value,
       customer: $('f-customer').value, project: $('f-project').value,
       bank: $('f-bank').value, kysong: $('f-kysong').checked,
+      dutruoc: ($('f-dutruoc') && $('f-dutruoc').value) || '',
       rows: rows.map((r) => ({ ...r })),
     };
   }
@@ -243,6 +260,7 @@
     $('f-project').value = s.project || '';
     $('f-bank').value = s.bank || 'cong_ty';
     $('f-kysong').checked = !!s.kysong;
+    if ($('f-dutruoc')) $('f-dutruoc').value = s.dutruoc ? fmtVND(digitsOnly(String(s.dutruoc))) : '';
     rows = Array.isArray(s.rows) && s.rows.length ? s.rows.slice(0, MAX_ROWS).map((r) => ({ ...r })) : [emptyRow()];
     renderRows(); syncAll();
   }
@@ -448,6 +466,8 @@
     ['f-tieude', 'f-customer', 'f-project'].forEach((id) => $(id).addEventListener('input', onChange));
     $('f-bank').addEventListener('change', onChange);
     $('f-kysong').addEventListener('change', onChange);
+    const du = $('f-dutruoc');
+    if (du) du.addEventListener('input', () => { du.value = du.value ? fmtVND(digitsOnly(du.value)) : ''; onChange(); });
     const fd = $('f-date');
     fd.addEventListener('input', () => { maskDate(fd); onChange(); });
     $('f-customer').addEventListener('change', () => rememberCustomer($('f-customer').value));
