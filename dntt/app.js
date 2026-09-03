@@ -86,22 +86,38 @@
 
   // ---------- rows state ----------
   let rows = []; // {ngay_cap, mac, kl, dg, pt}
+  let linkedQuote = null; // {customer, project, rows:[{name,price,slump}], ...}
   const emptyRow = () => ({ ngay_cap: formatToday(), mac: '', kl: '', dg: '', pt: '0' });
 
   function renderRows() {
     const root = $('debt-list');
     root.innerHTML = '';
     const opts = MAC_OPTIONS.map((m) => `<option value="${m}">`).join('');
+    // Khi đã link báo giá: mác chỉ được chọn trong danh sách của báo giá đó
+    const linkedMacs = linkedQuote && Array.isArray(linkedQuote.rows)
+      ? linkedQuote.rows.filter((m) => (m.name || '').trim()).map((m) => ({
+          name: String(m.name).trim(),
+          price: String(m.price || '').replace(/[^0-9]/g, ''),
+        }))
+      : null;
     rows.forEach((r, idx) => {
       const div = document.createElement('div');
       div.className = 'debt-row';
+      const macFieldHtml = linkedMacs
+        ? `<label class="field">Mác BT (từ báo giá)
+            <select data-f="mac">
+              <option value="">— chọn mác —</option>
+              ${linkedMacs.map((m) => `<option value="${esc(m.name)}"${m.name === r.mac ? ' selected' : ''}>${esc(m.name)} — ${fmtVND(m.price)}đ</option>`).join('')}
+            </select>
+          </label>`
+        : `<label class="field">Mác BT
+            <input type="text" maxlength="15" list="dl-mac" data-f="mac" value="${esc(r.mac)}">
+          </label>`;
       div.innerHTML = `
         <label class="field">Ngày cấp
           <input type="text" inputmode="numeric" class="date-mask" maxlength="10" data-f="ngay_cap" value="${esc(r.ngay_cap)}">
         </label>
-        <label class="field">Mác BT
-          <input type="text" maxlength="15" list="dl-mac" data-f="mac" value="${esc(r.mac)}">
-        </label>
+        ${macFieldHtml}
         <label class="field">Khối lượng (m³)
           <input type="number" step="0.01" min="0.01" inputmode="decimal" data-f="kl" value="${esc(r.kl)}">
         </label>
@@ -126,6 +142,22 @@
           onChange();
         });
       });
+      // Mác dropdown (khi đã link báo giá) — chọn mác → auto điền đơn giá
+      const macSel = div.querySelector('select[data-f="mac"]');
+      if (macSel && linkedMacs) {
+        macSel.addEventListener('change', () => {
+          rows[idx].mac = macSel.value;
+          const hit = linkedMacs.find((m) => m.name === macSel.value);
+          if (hit) {
+            rows[idx].dg = fmtVND(hit.price);
+            const dgInp = div.querySelector('input[data-f="dg"]');
+            if (dgInp) dgInp.value = rows[idx].dg;
+          }
+          const ttEl = div.querySelector('.tt');
+          if (ttEl) ttEl.textContent = fmtVND(calcRow(rows[idx]));
+          onChange();
+        });
+      }
       div.querySelector('.btn-remove').addEventListener('click', () => {
         if (rows.length <= 1) { alert('Phải có ít nhất 1 dòng công nợ'); return; }
         rows.splice(idx, 1); renderRows(); onChange();
@@ -342,6 +374,75 @@
   }
   window.addEventListener('resize', fitPreview);
 
+  // ---------- link báo giá ----------
+  const LINK_KEY = 'mktt_dntt_linked_quote_v1';
+
+  function setLinkedQuote(q, opts) {
+    linkedQuote = q || null;
+    try {
+      if (q) localStorage.setItem(LINK_KEY, JSON.stringify(q));
+      else localStorage.removeItem(LINK_KEY);
+    } catch (_) {}
+    if (q && !(opts && opts.skipFill)) {
+      if (q.customer) $('f-customer').value = String(q.customer);
+      if (q.project) $('f-project').value = String(q.project);
+    }
+    renderRows(); updateLinkedBanner(); onChange();
+  }
+
+  function clearLinkedQuote() { setLinkedQuote(null); }
+
+  function restoreLinkedQuote() {
+    try { linkedQuote = JSON.parse(localStorage.getItem(LINK_KEY) || 'null'); } catch (_) { linkedQuote = null; }
+  }
+
+  function tryLoadPendingQuote() {
+    let q = null;
+    try { q = JSON.parse(localStorage.getItem('mktt_pending_quote') || 'null'); } catch (_) {}
+    if (!q) return;
+    try { localStorage.removeItem('mktt_pending_quote'); } catch (_) {}
+    setLinkedQuote(q);
+  }
+
+  function updateLinkedBanner() {
+    const el = $('linked-banner');
+    if (!el) return;
+    if (!linkedQuote) { el.hidden = true; el.innerHTML = ''; return; }
+    el.hidden = false;
+    const macCount = (linkedQuote.rows || []).filter((r) => (r.name || '').trim()).length;
+    el.innerHTML = `
+      <span>🔗 Đã link báo giá: <b>${esc(linkedQuote.customer || '—')}</b> · ${esc(linkedQuote.project || '—')} · <b>${macCount}</b> mác</span>
+      <button type="button" id="btn-unlink">Bỏ link</button>`;
+    const btn = document.getElementById('btn-unlink');
+    if (btn) btn.addEventListener('click', () => { if (confirm('Bỏ link báo giá? Ô mác sẽ trở lại nhập tự do.')) clearLinkedQuote(); });
+  }
+
+  function toggleLinkPanel() {
+    const panel = $('link-panel');
+    if (!panel) return;
+    if (panel.hidden) { renderLinkPanel(); panel.hidden = false; }
+    else panel.hidden = true;
+  }
+
+  function renderLinkPanel() {
+    const panel = $('link-panel');
+    if (!window.QuotesStore) { panel.innerHTML = '<p class="hist-empty">Không đọc được danh sách báo giá.</p>'; return; }
+    const list = window.QuotesStore.listQuotes();
+    if (!list.length) { panel.innerHTML = '<p class="hist-empty">Chưa có báo giá nào — hãy tạo báo giá bên module Báo Giá trước.</p>'; return; }
+    panel.innerHTML = '';
+    list.forEach((q) => {
+      const row = document.createElement('div');
+      row.className = 'hist-item';
+      const macs = (q.rows || []).filter((r) => (r.name || '').trim()).length;
+      row.innerHTML = `<span>${esc(q.customer || '—')} · ${esc(q.project || '—')} · <b>${macs}</b> mác · ${esc(q.date || '')}</span>`;
+      row.addEventListener('click', () => {
+        setLinkedQuote(q);
+        panel.hidden = true;
+      });
+      panel.appendChild(row);
+    });
+  }
+
   // ---------- init ----------
   function init() {
     ['f-tieude', 'f-customer', 'f-project'].forEach((id) => $(id).addEventListener('input', onChange));
@@ -363,6 +464,12 @@
       const n = $('draft-notice'); if (n) n.hidden = true;
     });
     $('btn-history').addEventListener('click', toggleHistory);
+    $('btn-link-quote').addEventListener('click', toggleLinkPanel);
+    // Nạp báo giá đang chờ (bấm từ Báo Giá qua)
+    tryLoadPendingQuote();
+    // Khôi phục link đã có từ session trước
+    if (!linkedQuote) restoreLinkedQuote();
+    updateLinkedBanner();
     $('btn-print').addEventListener('click', () => {
       rememberCustomer($('f-customer').value);
       addHistory(collectState());

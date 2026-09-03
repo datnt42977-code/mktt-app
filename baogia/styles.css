@@ -151,6 +151,8 @@ body {
   white-space: nowrap;
 }
 .hist-row .hist-del { border-color: #d44; color: #d44; }
+.hist-row .hist-dntt { background: #0a7d33; color: #fff; border-color: #0a7d33; font-weight: 600; }
+.hist-row .hist-dntt:active { background: #086128; }
 
 /* ================ PREVIEW A4 ================ */
 #quote {

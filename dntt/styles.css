@@ -66,6 +66,19 @@ body {
 .btn-load-last { background:#eef; border:1px solid #bcd; border-radius:6px; padding:4px 8px; cursor:pointer; font-size:12px; }
 .hist-item { padding:6px 4px; border-bottom:1px solid #eee; cursor:pointer; }
 .hist-item:hover { background:#f4f4f4; }
+#link-panel {
+  background: #eef7f0; border: 1px solid #b4dcc0; border-radius: 8px;
+  padding: 8px 10px; margin-bottom: 10px; font-size: 13px; max-height: 260px; overflow: auto;
+}
+#linked-banner {
+  display: flex; align-items: center; gap: 10px; justify-content: space-between;
+  background: #e8f4fd; border: 1px solid #a9d0ee; border-radius: 10px;
+  padding: 9px 12px; margin: 6px 0 10px; font-size: 13px; color: #0d3f6b; flex-wrap: wrap;
+}
+#linked-banner b { color: #073a6c; }
+#linked-banner button { background: #fff; color: #0d3f6b; border: 1px solid #a9d0ee;
+  border-radius: 6px; padding: 5px 10px; cursor: pointer; font-size: 12.5px; }
+#linked-banner button:active { background: #eaf1f8; }
 
 /* ================ A4 PREVIEW (#quote) ================ */
 #quote {

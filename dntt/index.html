@@ -27,9 +27,12 @@
   <div class="form-actions">
     <button type="button" id="btn-new">Tạo mới</button>
     <button type="button" id="btn-history">Lịch sử</button>
+    <button type="button" id="btn-link-quote">📋 Nạp báo giá</button>
   </div>
   <div id="draft-notice" class="draft-notice" hidden></div>
   <div id="history-panel" hidden></div>
+  <div id="link-panel" hidden></div>
+  <div id="linked-banner" hidden></div>
   <div id="ocr-slot"></div>
 
   <fieldset>
@@ -130,6 +133,7 @@
 </div>
 </div><!-- /preview-wrap -->
 
+<script src="../baogia/quotes-store.js"></script>
 <script src="../shared/gemini-ocr.js"></script>
 <script src="app.js"></script>
 <script>

@@ -96,6 +96,16 @@
     openBtn.textContent = 'Mở lại';
     openBtn.addEventListener('click', () => openQuote(q.id));
 
+    const dnttBtn = document.createElement('button');
+    dnttBtn.type = 'button';
+    dnttBtn.className = 'hist-dntt';
+    dnttBtn.textContent = '💰 ĐNTT';
+    dnttBtn.title = 'Tạo Đề Nghị Thanh Toán từ báo giá này';
+    dnttBtn.addEventListener('click', () => {
+      try { localStorage.setItem('mktt_pending_quote', JSON.stringify(q)); } catch (_) {}
+      location.href = '../dntt/index.html';
+    });
+
     const delBtn = document.createElement('button');
     delBtn.type = 'button';
     delBtn.className = 'hist-del';
@@ -109,6 +119,7 @@
 
     row.appendChild(label);
     row.appendChild(openBtn);
+    row.appendChild(dnttBtn);
     row.appendChild(delBtn);
     return row;
   }
