@@ -71,6 +71,12 @@ body {
   background: #0a7d33; color: #fff; border: none; border-radius: 8px;
   font-size: 17px; font-weight: 600; cursor: pointer;
 }
+.btn-secondary {
+  display: block; width: 100%; margin-top: 8px; padding: 11px;
+  background: #eef2ef; color: #345; border: 1px solid #d5e2da; border-radius: 8px;
+  font-size: 14px; font-weight: 500; cursor: pointer;
+}
+.pdf-busy { opacity: .6; pointer-events: none; }
 .draft-notice, #history-panel {
   background: #fff8e1; border: 1px solid #ffe0a3; border-radius: 8px;
   padding: 8px 10px; margin-bottom: 10px; font-size: 13px;

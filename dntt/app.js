@@ -367,6 +367,71 @@
   // giữ tên cũ để các nơi gọi không vỡ — chỉ đảm bảo cỡ chữ user được áp
   function fitOnePage() { applyFontPt(getFontPt()); }
 
+  // ---------- Tải PDF sạch (html2pdf, không qua máy in trình duyệt) ----------
+  function slug(s) {
+    return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-zA-Z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 40) || 'DNTT';
+  }
+  async function exportPDF() {
+    const q = $('quote');
+    const wrap = $('preview-wrap');
+    if (!q || typeof html2pdf === 'undefined') {
+      alert('Chưa tải được bộ tạo PDF. Kiểm tra mạng rồi thử lại.');
+      return;
+    }
+    rememberCustomer($('f-customer').value);
+    addHistory(collectState());
+
+    const btn = $('btn-pdf');
+    const oldTxt = btn ? btn.textContent : '';
+    if (btn) { btn.classList.add('pdf-busy'); btn.textContent = '⏳ Đang tạo PDF...'; }
+
+    // Lưu style hiện tại để khôi phục
+    const prev = {
+      qTransform: q.style.transform, qMargin: q.style.margin, qShadow: q.style.boxShadow,
+      qPad: q.style.padding, qWidth: q.style.width, qMaxW: q.style.maxWidth,
+      wrapScale: wrap.style.getPropertyValue('--pv-scale'), wrapH: wrap.style.height, wrapOv: wrap.style.overflow,
+    };
+    // Chuẩn hoá về khổ A4 thật, bỏ scale preview + shadow
+    q.style.transform = 'none';
+    q.style.margin = '0';
+    q.style.boxShadow = 'none';
+    q.style.padding = '12mm';
+    q.style.width = '210mm';
+    q.style.maxWidth = 'none';
+    wrap.style.setProperty('--pv-scale', '1');
+    wrap.style.height = 'auto';
+    wrap.style.overflow = 'visible';
+
+    const cust = $('f-customer').value;
+    const date = ($('f-date').value || '').replace(/\//g, '-');
+    const filename = `DNTT_${slug(cust)}_${date || formatToday().replace(/\//g, '-')}.pdf`;
+
+    const opt = {
+      margin: 0,
+      filename,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['avoid-all'] },
+    };
+
+    try {
+      await html2pdf().set(opt).from(q).save();
+    } catch (err) {
+      alert('Lỗi tạo PDF: ' + (err && err.message ? err.message : err));
+    } finally {
+      // khôi phục style
+      q.style.transform = prev.qTransform; q.style.margin = prev.qMargin;
+      q.style.boxShadow = prev.qShadow; q.style.padding = prev.qPad;
+      q.style.width = prev.qWidth; q.style.maxWidth = prev.qMaxW;
+      wrap.style.setProperty('--pv-scale', prev.wrapScale || '1');
+      wrap.style.height = prev.wrapH; wrap.style.overflow = prev.wrapOv;
+      if (btn) { btn.classList.remove('pdf-busy'); btn.textContent = oldTxt; }
+      fitPreview();
+    }
+  }
+
   // ---------- fit A4 preview vào bề ngang màn hình ----------
   function fitPreview() {
     const wrap = $('preview-wrap');
@@ -480,6 +545,7 @@
       const n = $('draft-notice'); if (n) n.hidden = true;
     });
     $('btn-history').addEventListener('click', toggleHistory);
+    if ($('btn-pdf')) $('btn-pdf').addEventListener('click', exportPDF);
     $('btn-link-quote').addEventListener('click', toggleLinkPanel);
     // Nạp báo giá đang chờ (bấm từ Báo Giá qua)
     tryLoadPendingQuote();
