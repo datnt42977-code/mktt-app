@@ -349,6 +349,7 @@
         alert('Trình duyệt không hỗ trợ in. Mở trong Safari/Chrome và dùng Chia sẻ → In.');
         return;
       }
+      try { fitOnePage(); } catch (_) {}
       try { window.print(); } catch (_) { alert('Không mở được hộp thoại in. Dùng menu Chia sẻ → In.'); }
     });
 
