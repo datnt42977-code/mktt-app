@@ -46,11 +46,11 @@
     <label>Ngày lập <input type="text" id="f-date" class="date-mask" inputmode="numeric" placeholder="dd/mm/yyyy" maxlength="10"></label>
     <label>Khách hàng
       <span class="suggest-wrap">
-        <input type="text" id="f-customer" maxlength="250" placeholder="CÔNG TY CỔ PHẦN ..." autocomplete="off" list="dl-customers">
+        <input type="text" id="f-customer" maxlength="250" placeholder="CÔNG TY CỔ PHẦN ..." autocomplete="off" autocapitalize="words" list="dl-customers">
       </span>
     </label>
     <datalist id="dl-customers"></datalist>
-    <label>Công trình <input type="text" id="f-project" maxlength="300" placeholder="Trạm biến áp 110kV ..."></label>
+    <label>Công trình <input type="text" id="f-project" maxlength="300" placeholder="Trạm biến áp 110kV ..." autocapitalize="words"></label>
     <label>Tài khoản nhận thanh toán
       <select id="f-bank">
         <option value="cong_ty" selected>STK Công ty — BIDV 8600024006</option>

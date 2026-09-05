@@ -70,16 +70,18 @@
 
   // ---------- viết hoa chữ cái đầu mỗi từ (giữ nguyên phần còn lại: acronym/ALL CAPS không bị đổi) ----------
   const titleCase = (s) => String(s || '').replace(/(^|[\s(\/.\-])([\p{L}])/gu, (m, sep, ch) => sep + ch.toUpperCase());
-  // Áp dụng title-case cho input trong lúc gõ mà không làm nhảy con trỏ
+  // Chuẩn hoá title-case khi RỜI ô (blur), KHÔNG can thiệp lúc đang gõ.
+  // Lý do: set .value ngay trong sự kiện 'input' xung đột với bộ gõ thông minh iOS
+  // (Smart Punctuation) gây nhân đôi ký tự như "" khi gõ 1 lần. Việc viết hoa lúc
+  // gõ đã có thuộc tính native autocapitalize="words" trên bàn phím di động lo.
   function attachTitleCase(id) {
     const el = $(id);
     if (!el) return;
-    el.addEventListener('input', () => {
-      const start = el.selectionStart, end = el.selectionEnd;
+    el.addEventListener('blur', () => {
       const next = titleCase(el.value);
       if (next !== el.value) {
-        el.value = next; // độ dài không đổi nên caret giữ nguyên vị trí
-        try { el.setSelectionRange(start, end); } catch (_) {}
+        el.value = next;
+        el.dispatchEvent(new Event('input', { bubbles: true })); // cập nhật bản xem trước
       }
     });
   }
@@ -535,7 +537,7 @@
 
   // ---------- init ----------
   function init() {
-    // Title-case phải gắn TRƯỚC onChange để preview đọc đúng giá trị đã viết hoa
+    // Viết hoa đầu từ: native autocapitalize="words" lúc gõ + chuẩn hoá khi blur
     attachTitleCase('f-customer');
     attachTitleCase('f-project');
     ['f-tieude', 'f-customer', 'f-project'].forEach((id) => $(id).addEventListener('input', onChange));
