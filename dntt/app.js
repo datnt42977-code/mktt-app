@@ -68,6 +68,22 @@
   const $ = (id) => document.getElementById(id);
   const setText = (id, v) => { const el = $(id); if (el) el.textContent = v; };
 
+  // ---------- viết hoa chữ cái đầu mỗi từ (giữ nguyên phần còn lại: acronym/ALL CAPS không bị đổi) ----------
+  const titleCase = (s) => String(s || '').replace(/(^|[\s(\/.\-])([\p{L}])/gu, (m, sep, ch) => sep + ch.toUpperCase());
+  // Áp dụng title-case cho input trong lúc gõ mà không làm nhảy con trỏ
+  function attachTitleCase(id) {
+    const el = $(id);
+    if (!el) return;
+    el.addEventListener('input', () => {
+      const start = el.selectionStart, end = el.selectionEnd;
+      const next = titleCase(el.value);
+      if (next !== el.value) {
+        el.value = next; // độ dài không đổi nên caret giữ nguyên vị trí
+        try { el.setSelectionRange(start, end); } catch (_) {}
+      }
+    });
+  }
+
   // ---------- date ----------
   function maskDate(el) {
     let v = digitsOnly(el.value).slice(0, 8);
@@ -519,6 +535,9 @@
 
   // ---------- init ----------
   function init() {
+    // Title-case phải gắn TRƯỚC onChange để preview đọc đúng giá trị đã viết hoa
+    attachTitleCase('f-customer');
+    attachTitleCase('f-project');
     ['f-tieude', 'f-customer', 'f-project'].forEach((id) => $(id).addEventListener('input', onChange));
     $('f-bank').addEventListener('change', onChange);
     $('f-kysong').addEventListener('change', onChange);
