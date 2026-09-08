@@ -101,12 +101,9 @@ body {
 .hist-empty { color:#777; padding:6px 4px; margin:0; }
 
 /* Badge số đợt — góc trên phải tờ A4 */
-.q-dot-badge {
-  position:absolute; right:8mm; top:8mm; z-index:6;
-  border:1.4px solid #b00; color:#b00; border-radius:6px;
-  padding:2px 8px; font-weight:700; font-size:0.9em;
-  font-family:"Times New Roman", Times, serif; background:rgba(255,255,255,.85);
-  transform:rotate(-3deg);
+.q-dot-line {
+  text-align: right; color: #000; margin: 0 0 6px;
+  font-size: 1em; font-weight: 400;
 }
 #link-panel {
   background: #eef7f0; border: 1px solid #b4dcc0; border-radius: 8px;

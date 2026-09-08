@@ -243,7 +243,7 @@
     const dotBadge = $('q-dot-badge');
     if (dotBadge) {
       const dv = dotEl ? dotEl.value.trim() : '';
-      if (dv) { dotBadge.hidden = false; dotBadge.textContent = 'Đợt ' + dv; }
+      if (dv) { dotBadge.hidden = false; dotBadge.textContent = dv; }
       else dotBadge.hidden = true;
     }
 
