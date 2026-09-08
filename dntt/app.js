@@ -201,6 +201,35 @@
     return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }
 
+  // ---------- chuẩn hoá chuỗi để so khớp (bỏ dấu, hoa, gọn khoảng trắng) ----------
+  function normKey(s) {
+    return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase().replace(/\s+/g, ' ').trim();
+  }
+  // key định danh 1 công nợ = khách + công trình
+  function dealKey(customer, project) {
+    return normKey(customer) + '||' + normKey(project);
+  }
+  const pad2 = (n) => String(n).padStart(2, '0');
+
+  // Đếm số đợt đã lập cho cùng khách + công trình (dựa vào history) → đợt kế tiếp
+  function computeDot(customer, project) {
+    let list = [];
+    try { list = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); } catch (_) {}
+    const key = dealKey(customer, project);
+    if (!normKey(customer)) return '';
+    const count = list.filter((h) => h && h.state && dealKey(h.state.customer, h.state.project) === key).length;
+    return pad2(count + 1);
+  }
+  // Tự điền số đợt vào ô (nếu người dùng chưa gõ tay)
+  function autoFillDot(force) {
+    const el = $('f-dot');
+    if (!el) return;
+    if (!force && el.value.trim()) return; // đã có → tôn trọng số người dùng gõ
+    const d = computeDot($('f-customer').value, $('f-project').value);
+    el.value = d;
+  }
+
   // ---------- sync preview ----------
   function syncAll() {
     const { day, month, year } = parseDate($('f-date').value);
@@ -208,6 +237,15 @@
     setText('q-title', ($('f-tieude').value || DEFAULT_TIEUDE).toUpperCase());
     setText('q-customer', $('f-customer').value.trim() || '________________________');
     setText('q-project', $('f-project').value.trim() || '________________________');
+
+    // Badge số đợt (góc trên phải tờ A4)
+    const dotEl = $('f-dot');
+    const dotBadge = $('q-dot-badge');
+    if (dotBadge) {
+      const dv = dotEl ? dotEl.value.trim() : '';
+      if (dv) { dotBadge.hidden = false; dotBadge.textContent = 'Đợt ' + dv; }
+      else dotBadge.hidden = true;
+    }
 
     const bank = BANKS[$('f-bank').value] || BANKS.cong_ty;
     setText('q-bank-owner', bank.owner); setText('q-bank-no', bank.no); setText('q-bank-name', bank.name);
@@ -266,6 +304,7 @@
       tieude: $('f-tieude').value, date: $('f-date').value,
       customer: $('f-customer').value, project: $('f-project').value,
       bank: $('f-bank').value, kysong: $('f-kysong').checked,
+      dot: ($('f-dot') && $('f-dot').value) || '',
       dutruoc: ($('f-dutruoc') && $('f-dutruoc').value) || '',
       rows: rows.map((r) => ({ ...r })),
     };
@@ -274,6 +313,7 @@
     s = s || {};
     $('f-tieude').value = s.tieude || DEFAULT_TIEUDE;
     $('f-date').value = s.date || formatToday();
+    if ($('f-dot')) $('f-dot').value = s.dot || '';
     $('f-customer').value = s.customer || '';
     $('f-project').value = s.project || '';
     $('f-bank').value = s.bank || 'cong_ty';
@@ -360,6 +400,79 @@
       });
     }
     panel.hidden = false;
+  }
+
+  // ---------- 🔍 Tìm khách cũ (search history) ----------
+  function getHistory() {
+    let list = [];
+    try { list = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); } catch (_) {}
+    return Array.isArray(list) ? list : [];
+  }
+  // Gom history theo khách+công trình → mỗi deal 1 dòng (bản mới nhất + số đợt đã lập)
+  function groupDeals() {
+    const map = new Map();
+    getHistory().forEach((h) => {
+      if (!h || !h.state) return;
+      const key = dealKey(h.state.customer, h.state.project);
+      const cur = map.get(key);
+      if (!cur) map.set(key, { key, latest: h, count: 1 });
+      else { cur.count += 1; if (h.at > cur.latest.at) cur.latest = h; }
+    });
+    return [...map.values()].sort((a, b) => b.latest.at - a.latest.at);
+  }
+  function renderSearch(query) {
+    const panel = $('search-panel');
+    if (!panel) return;
+    const q = normKey(query);
+    let deals = groupDeals();
+    if (q) deals = deals.filter((d) => (normKey(d.latest.state.customer) + ' ' + normKey(d.latest.state.project)).includes(q));
+    const head = `<div class="search-head">
+        <input type="text" id="search-input" placeholder="Gõ tên khách hoặc công trình..." value="${esc(query || '')}" autocomplete="off">
+        <button type="button" id="btn-search-close" class="mini">✕</button>
+      </div>`;
+    if (!deals.length) {
+      panel.innerHTML = head + '<p class="hist-empty">Không tìm thấy khách/công trình cũ.</p>';
+    } else {
+      panel.innerHTML = head + deals.slice(0, 40).map((d, i) => {
+        const s = d.latest.state;
+        const total = d.latest.total || 0;
+        const dt = new Date(d.latest.at).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: '2-digit' });
+        return `<div class="hist-item search-item" data-i="${i}">
+            <div class="si-main"><b>${esc(s.customer || '(chưa có khách)')}</b></div>
+            <div class="si-sub">${esc(s.project || '—')}</div>
+            <div class="si-meta">Đã lập <b>${d.count}</b> đợt · gần nhất ${dt} · ${fmtVND(total)}đ</div>
+          </div>`;
+      }).join('');
+      const filtered = deals.slice(0, 40);
+      panel.querySelectorAll('.search-item').forEach((el) => {
+        el.addEventListener('click', () => {
+          const d = filtered[+el.dataset.i];
+          // Nạp lại state khách cũ NHƯNG soạn đợt mới: ngày hôm nay + đợt kế tiếp, xoá tiền dư
+          const base = Object.assign({}, d.latest.state, {
+            date: formatToday(),
+            dot: pad2(d.count + 1),
+            dutruoc: '',
+          });
+          applyState(base);
+          panel.hidden = true;
+          window.scrollTo(0, 0);
+        });
+      });
+    }
+    panel.hidden = false;
+    const inp = $('search-input');
+    if (inp) {
+      inp.addEventListener('input', () => renderSearch(inp.value));
+      inp.focus();
+    }
+    const close = $('btn-search-close');
+    if (close) close.addEventListener('click', () => { panel.hidden = true; });
+  }
+  function toggleSearch() {
+    const panel = $('search-panel');
+    if (!panel) return;
+    if (!panel.hidden) { panel.hidden = true; return; }
+    renderSearch('');
   }
 
   // ---------- cỡ chữ do NGƯỜI DÙNG chỉnh (A- / A+), không auto co ----------
@@ -541,6 +654,14 @@
     attachTitleCase('f-customer');
     attachTitleCase('f-project');
     ['f-tieude', 'f-customer', 'f-project'].forEach((id) => $(id).addEventListener('input', onChange));
+    // Tự đánh số đợt khi đổi khách / công trình (nếu ô đợt còn trống)
+    ['f-customer', 'f-project'].forEach((id) => $(id).addEventListener('blur', () => { autoFillDot(false); onChange(); }));
+    if ($('f-dot')) $('f-dot').addEventListener('input', () => {
+      $('f-dot').value = $('f-dot').value.replace(/\D/g, '').slice(0, 2);
+      onChange();
+    });
+    if ($('btn-dot-auto')) $('btn-dot-auto').addEventListener('click', () => { autoFillDot(true); onChange(); });
+    if ($('btn-search')) $('btn-search').addEventListener('click', toggleSearch);
     $('f-bank').addEventListener('change', onChange);
     $('f-kysong').addEventListener('change', onChange);
     const du = $('f-dutruoc');
@@ -585,6 +706,8 @@
 
     loadCustomers();
     loadDraft();
+    autoFillDot(false); // điền đợt nếu đang trống mà đã có khách
+    syncAll();
     fitOnePage();
     fitPreview();
     window.addEventListener('load', () => { fitOnePage(); fitPreview(); });

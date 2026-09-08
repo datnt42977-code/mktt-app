@@ -26,10 +26,12 @@
 
   <div class="form-actions">
     <button type="button" id="btn-new">Tạo mới</button>
+    <button type="button" id="btn-search">🔍 Tìm khách cũ</button>
     <button type="button" id="btn-history">Lịch sử</button>
     <button type="button" id="btn-link-quote">📋 Nạp báo giá</button>
   </div>
   <div id="draft-notice" class="draft-notice" hidden></div>
+  <div id="search-panel" hidden></div>
   <div id="history-panel" hidden></div>
   <div id="link-panel" hidden></div>
   <div id="linked-banner" hidden></div>
@@ -44,6 +46,12 @@
       </span>
     </label>
     <label>Ngày lập <input type="text" id="f-date" class="date-mask" inputmode="numeric" placeholder="dd/mm/yyyy" maxlength="10"></label>
+    <label>Đợt thanh toán
+      <span class="inline-row">
+        <input type="text" id="f-dot" inputmode="numeric" maxlength="2" placeholder="01" style="max-width:80px">
+        <button type="button" id="btn-dot-auto" class="mini" title="Tự đánh số theo khách + công trình">Tự</button>
+      </span>
+    </label>
     <label>Khách hàng
       <span class="suggest-wrap">
         <input type="text" id="f-customer" maxlength="250" placeholder="CÔNG TY CỔ PHẦN ..." autocomplete="off" autocapitalize="words" list="dl-customers">
@@ -87,6 +95,7 @@
 <div id="preview-wrap">
 <div id="quote">
   <img class="q-hanging-stamp" id="q-hanging-stamp" src="assets/stamp-treo.png" alt="Dấu treo">
+  <div class="q-dot-badge" id="q-dot-badge" hidden>Đợt 01</div>
   <header class="q-header">
     <div class="q-head-left">
       <img class="q-logo" src="assets/logo.png" alt="MKTT">
