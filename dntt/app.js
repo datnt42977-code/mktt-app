@@ -534,23 +534,53 @@
     wrap.style.height = 'auto';
     wrap.style.overflow = 'visible';
 
+    // Cuộn về đầu + đợi ảnh (logo/dấu/chữ ký) tải & giải mã xong.
+    // Nếu ảnh chưa sẵn sàng khi chụp -> html2canvas ra trang trắng.
+    try { window.scrollTo(0, 0); } catch (_) {}
+    try {
+      await Promise.all([...q.querySelectorAll('img')].map(img => {
+        if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+        if (img.decode) return img.decode().catch(() => {});
+        return new Promise(res => { img.onload = img.onerror = res; });
+      }));
+    } catch (_) {}
+    // Chờ 1 nhịp layout để kích thước A4 ổn định
+    await new Promise(r => setTimeout(r, 120));
+
     const cust = $('f-customer').value;
     const date = ($('f-date').value || '').replace(/\//g, '-');
     const filename = `DNTT_${slug(cust)}_${date || formatToday().replace(/\//g, '-')}.pdf`;
 
+    // ⚠️ iOS Safari giới hạn kích thước canvas (~4096px mỗi chiều / ~16.7M px).
+    // #quote có thể cao 2 trang -> scale 2 làm canvas vượt giới hạn -> ra TRANG TRẮNG.
+    // Tự hạ scale để chiều cao*scale luôn nằm dưới ngưỡng an toàn.
+    const SAFE_MAX = 3800; // px an toàn cho iOS
+    const hpx = q.offsetHeight || 1123;
+    const wpx = q.offsetWidth || 794;
+    let scale = Math.min(2, SAFE_MAX / hpx, SAFE_MAX / wpx);
+    if (!(scale > 0.5)) scale = 0.9; // sàn tối thiểu để chữ còn nét
+
     const opt = {
       margin: 0,
       filename,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      pagebreak: { mode: ['avoid-all'] },
+      image: { type: 'jpeg', quality: 0.95 },
+      html2canvas: {
+        scale,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        scrollX: 0,
+        scrollY: 0,
+        windowWidth: q.scrollWidth,
+        windowHeight: q.scrollHeight,
+      },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true },
+      pagebreak: { mode: ['css', 'legacy'] },
     };
 
     try {
       await html2pdf().set(opt).from(q).save();
     } catch (err) {
-      alert('Lỗi tạo PDF: ' + (err && err.message ? err.message : err));
+      alert('Lỗi tạo PDF: ' + (err && err.message ? err.message : err) + '\nThử lại sau vài giây, hoặc giảm cỡ chữ PDF.');
     } finally {
       // khôi phục style
       q.style.transform = prev.qTransform; q.style.margin = prev.qMargin;
