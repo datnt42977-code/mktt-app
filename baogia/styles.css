@@ -80,6 +80,12 @@ body {
 .quydoi-table th { background: #eef3fa; color: #333; font-weight: 600; }
 .quydoi-table td:first-child { font-weight: 700; color: #1a73e8; }
 .quydoi-note { font-size: 11px; color: #888; margin: 5px 2px 0; line-height: 1.4; }
+
+/* Phần bơm bê tông */
+.pump-fixed-note { font-size: 13px; color: #555; margin: 8px 0 0; line-height: 1.45; }
+.pump-notes { margin: 0; padding-left: 18px; text-align: left; }
+.pump-notes li { margin: 2px 0; line-height: 1.45; }
+.pump-table th { text-align: center; }
 #form .btn-primary {
   background: #1a73e8;
   color: #fff;

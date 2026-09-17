@@ -58,10 +58,6 @@
   const bindings = [
     ['f-customer', 'q-customer'],
     ['f-project', 'q-project'],
-    ['f-pump1-ca', 'q-pump1-ca', true],
-    ['f-pump1-m3', 'q-pump1-m3', true],
-    ['f-pump2-ca', 'q-pump2-ca', true],
-    ['f-pump2-m3', 'q-pump2-m3', true],
   ];
 
   function syncBinding([fId, qId, isNum]) {
@@ -130,11 +126,9 @@
     const on = isChecked('f-pump-on');
     const wrap = document.getElementById('f-pump-wrap');
     if (wrap) wrap.hidden = !on;
-    const heading = document.getElementById('q-pump-heading');
-    const table = document.getElementById('q-pump-table');
-    const display = on ? '' : 'none';
-    if (heading) heading.style.display = display;
-    if (table) table.style.display = display;
+    // Bảng giá bơm cố định (bơm cần + bơm ngang) — ẩn/hiện cả khối trong báo giá.
+    const block = document.getElementById('q-pump-block');
+    if (block) block.style.display = on ? '' : 'none';
   }
 
   // ---------- người liên hệ ----------
@@ -446,8 +440,6 @@
       customer: val('f-customer'), project: val('f-project'),
       contact: val('f-contact'), contactDefault: isChecked('f-contact-default'),
       pumpOn: isChecked('f-pump-on'),
-      pump1Ca: val('f-pump1-ca'), pump1M3: val('f-pump1-m3'),
-      pump2Ca: val('f-pump2-ca'), pump2M3: val('f-pump2-m3'),
       vat: document.getElementById('f-vat').checked,
       extra: val('f-extra'),
       rows: rows.map((r) => ({ name: r.name, price: r.price, slump: r.slump, manual: !!r.manual })),
@@ -459,8 +451,6 @@
     return {
       rows: (s.rows || []).map((r) => ({ name: r.name, price: r.price, slump: r.slump, manual: !!r.manual })),
       pumpOn: s.pumpOn,
-      pump1Ca: s.pump1Ca, pump1M3: s.pump1M3,
-      pump2Ca: s.pump2Ca, pump2M3: s.pump2M3,
       vat: s.vat,
     };
   }
@@ -474,8 +464,6 @@
     setVal('f-contact', state.contact === DEFAULT_CONTACT ? '' : state.contact);
     setChecked('f-contact-default',
       state.contactDefault != null ? state.contactDefault : !String(state.contact || '').trim());
-    setVal('f-pump1-ca', state.pump1Ca); setVal('f-pump1-m3', state.pump1M3);
-    setVal('f-pump2-ca', state.pump2Ca); setVal('f-pump2-m3', state.pump2M3);
     // Mặc định LUÔN có phần bơm; chỉ ẩn khi người dùng chủ động bỏ tick.
     setChecked('f-pump-on', state.pumpOn !== false);
     document.getElementById('f-vat').checked = !!state.vat;
@@ -541,9 +529,8 @@
       onAnyChange();
       if (!e.target.checked) document.getElementById('f-contact').focus();
     });
-    document.getElementById('f-pump-on').addEventListener('change', (e) => {
+    document.getElementById('f-pump-on').addEventListener('change', () => {
       onAnyChange();
-      if (e.target.checked) document.getElementById('f-pump1-ca').focus();
     });
     document.getElementById('f-extra').addEventListener('input', onAnyChange);
 

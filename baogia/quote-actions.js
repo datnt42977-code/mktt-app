@@ -35,8 +35,6 @@
       date: '', customer: '', project: '', extra: '',
       rows: tpl.rows || [],
       pumpOn: tpl.pumpOn,
-      pump1Ca: tpl.pump1Ca, pump1M3: tpl.pump1M3,
-      pump2Ca: tpl.pump2Ca, pump2M3: tpl.pump2M3,
       vat: tpl.vat,
     });
     deps.persist();

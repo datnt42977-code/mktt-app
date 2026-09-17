@@ -54,13 +54,10 @@
   </fieldset>
 
   <fieldset>
-    <legend>Đơn giá bơm (VNĐ)</legend>
+    <legend>Bơm bê tông</legend>
     <label class="checkbox"><input type="checkbox" id="f-pump-on" checked> Có báo giá bơm</label>
     <div id="f-pump-wrap">
-      <label>Bơm ngang/cần 37m, tầng 0-4, ca &lt;28m³ <input type="text" id="f-pump1-ca" inputmode="decimal" class="num"></label>
-      <label>Bơm ngang/cần 37m, tầng 0-4, ≥28m³ <input type="text" id="f-pump1-m3" inputmode="decimal" class="num"></label>
-      <label>Bơm ngang/cần 37m, tầng 5-9, ca &lt;28m³ <input type="text" id="f-pump2-ca" inputmode="decimal" class="num"></label>
-      <label>Bơm ngang/cần 37m, tầng 5-9, ≥28m³ <input type="text" id="f-pump2-m3" inputmode="decimal" class="num"></label>
+      <p class="pump-fixed-note">Bảng giá bơm cố định theo Mê Kông Thương Tín (bơm cần + bơm ngang). Bật/tắt để hiện trong báo giá.</p>
     </div>
   </fieldset>
 
@@ -149,40 +146,63 @@
     </ul>
   </div>
 
-  <h2 class="q-section" id="q-pump-heading">Đơn giá sử dụng bơm:</h2>
-  <table class="q-table" id="q-pump-table">
-    <thead>
-      <tr>
-        <th>STT</th><th>LOẠI BƠM</th><th>DIỄN GIẢI</th>
-        <th>Ca Bơm &lt; 28m³</th><th>Ca Bơm ≥ 28m³</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td rowspan="2">01</td>
-        <td rowspan="2">Bơm ngang hoặc Bơm cần 37m</td>
-        <td>Tầng 0 đến tầng 4</td>
-        <td class="num"><span class="r" id="q-pump1-ca">_________</span>đ/Ca</td>
-        <td class="num"><span class="r" id="q-pump1-m3">_______</span>đ/m³</td>
-      </tr>
-      <tr>
-        <td>Tầng 5 đến tầng 9</td>
-        <td class="num"><span class="r" id="q-pump2-ca">_________</span>đ/Ca</td>
-        <td class="num"><span class="r" id="q-pump2-m3">_______</span>đ/m³</td>
-      </tr>
-      <tr>
-        <td>02</td>
-        <td>Bơm cột, vách, đà, dầm, thang máy…</td>
-        <td></td>
-        <td>Đơn giá trên cộng thêm 500.000đ/ca</td>
-        <td>Đơn giá trên cộng thêm 15.000đ/m³</td>
-      </tr>
-      <tr><td>03</td><td colspan="4">Bơm ngang đường ống dài hơn 80m thì cứ mỗi 30m tăng thêm 30.000đ/m³.</td></tr>
-      <tr><td>04</td><td>Ca hoãn, dự phòng, ca chờ (chờ ≥ 4 giờ)</td><td colspan="3">Tính bằng 01 ca bơm</td></tr>
-      <tr><td>05</td><td>Những hạng mục nhỏ lẻ, khối lượng ít.</td><td colspan="3">Nếu thời gian bơm quá 4 tiếng kể từ lúc có bê tông. Tính thêm 1 ca bơm mới.</td></tr>
-      <tr><td>06</td><td colspan="4">Trường hợp bơm (bơm cần hoặc bơm ngang) đã tới đặt tại công trường mà dời bơm theo yêu cầu của bên mua thì ngoài đơn giá bơm phải trả, mỗi lần dời bơm sẽ tính thêm 01 ca bơm.</td></tr>
-    </tbody>
-  </table>
+  <div id="q-pump-block">
+    <h2 class="q-section">Đơn giá bơm cần:</h2>
+    <table class="q-table pump-table">
+      <thead>
+        <tr>
+          <th rowspan="2">STT</th><th rowspan="2">Nội dung</th>
+          <th colspan="2">Đơn giá</th><th rowspan="2">Ghi chú</th>
+        </tr>
+        <tr>
+          <th>KL &gt;28m³<br>(VNĐ/m³)</th><th>KL ≤28m³<br>(VNĐ/ca)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td>Bơm cần 37m – 42m</td><td class="num r">115.000</td><td class="num r">3.200.000</td><td>1 Đậu, 1 Dời</td></tr>
+        <tr><td>2</td><td>Bơm cần 47m</td><td class="num r">125.000</td><td class="num r">3.500.000</td><td>1 Lần đậu</td></tr>
+        <tr><td>3</td><td>Bơm cần 52m</td><td class="num r">130.000</td><td class="num r">3.800.000</td><td>1 Lần đậu</td></tr>
+        <tr><td>4</td><td>Bơm cần 56m</td><td class="num r">140.000</td><td class="num r">4.100.000</td><td>1 Lần đậu</td></tr>
+        <tr><td>5</td><td colspan="4">
+          <ul class="pump-notes">
+            <li>Trường hợp bơm cột, vách, cầu thang, đà kiềng thì đơn giá trên cộng thêm <b>15.000đ/m³</b> và <b>500.000đ/ca</b>.</li>
+            <li>Bơm cần 37–42m: 01 lần đậu, 1 lần dời. Từ lần dời thứ 2 trở đi, mỗi lần dời bơm tính bằng 01 ca bơm.</li>
+            <li>Bơm cần 47–56m: 01 lần đậu bơm đầu tiên. Mỗi lần di chuyển bơm sẽ tính bằng 01 ca bơm.</li>
+            <li>Ca hoãn, dự phòng, ca chờ (chờ ≥ 4 giờ): tính bằng 01 ca bơm.</li>
+            <li>Những hạng mục nhỏ lẻ, khối lượng ít: nếu thời gian bơm quá 4 tiếng kể từ lúc có bê tông, tính thêm 1 ca bơm mới.</li>
+            <li>Trường hợp bơm (bơm cần hoặc bơm ngang) đã tới đặt tại công trường mà dời bơm theo yêu cầu của bên mua thì ngoài đơn giá bơm phải trả, mỗi lần dời bơm sẽ tính thêm 01 ca bơm.</li>
+          </ul>
+        </td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="q-section">Đơn giá bơm ngang:</h2>
+    <table class="q-table pump-table">
+      <thead>
+        <tr>
+          <th rowspan="2">STT</th><th rowspan="2">Hạng mục</th>
+          <th colspan="2">Đơn giá</th><th rowspan="2">Ghi chú</th>
+        </tr>
+        <tr>
+          <th>KL &gt;28m³<br>(VNĐ/m³)</th><th>KL ≤28m³<br>(VNĐ/ca)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td>Sàn 1 – 4</td><td class="num r">115.000</td><td class="num r">3.200.000</td><td>ống ≤ 80 mét</td></tr>
+        <tr><td>2</td><td>Sàn 5 – 9</td><td class="num r">125.000</td><td class="num r">3.700.000</td><td></td></tr>
+        <tr><td>3</td><td colspan="4">
+          <ul class="pump-notes">
+            <li>Áp dụng cho lần ráp ống đầu tiên; trường hợp dời ống quá 30m ống thì tính thêm ca mới.</li>
+            <li>Trường hợp bơm đường ống dài: sau 80m đầu, cứ 30m tiếp theo đơn giá cộng thêm <b>10.000đ/m³</b> và <b>300.000đ/ca</b> (không đủ 30m vẫn tính là 30m).</li>
+            <li>Trường hợp bơm cột, vách, cầu thang, đà kiềng thì đơn giá trên cộng thêm <b>15.000đ/m³</b> và <b>500.000đ/ca</b>.</li>
+            <li>Ca hoãn, dự phòng, ca chờ (chờ ≥ 4 giờ): tính bằng 01 ca bơm.</li>
+            <li>Những hạng mục nhỏ lẻ, khối lượng ít: nếu thời gian bơm quá 4 tiếng kể từ lúc có bê tông, tính thêm 1 ca bơm mới.</li>
+            <li>Trường hợp bơm (bơm cần hoặc bơm ngang) đã tới đặt tại công trường mà dời bơm theo yêu cầu của bên mua thì ngoài đơn giá bơm phải trả, mỗi lần dời bơm sẽ tính thêm 01 ca bơm.</li>
+          </ul>
+        </td></tr>
+      </tbody>
+    </table>
+  </div>
 
   <h2 class="q-section">Hình Thức Thanh Toán:</h2>
   <p>- Thanh toán trước khi cấp hàng.</p>
