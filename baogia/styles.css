@@ -81,6 +81,13 @@ body {
 .quydoi-table td:first-child { font-weight: 700; color: #1a73e8; }
 .quydoi-note { font-size: 11px; color: #888; margin: 5px 2px 0; line-height: 1.4; }
 
+/* html2pdf KHÔNG áp dụng @media print → khi tạo PDF bằng nút Tải PDF,
+   tạm gắn class .pdf-mode lên #quote để ép giống bản in: giá đỏ→đen + không tách trang giữa dòng. */
+#quote.pdf-mode .r { color: #000 !important; }
+#quote.pdf-mode .q-table tr { page-break-inside: avoid; break-inside: avoid; }
+#quote.pdf-mode .q-signature { page-break-inside: avoid; break-inside: avoid; }
+#quote.pdf-mode .q-section { page-break-after: avoid; }
+
 /* Nút Tải PDF sạch + fallback in */
 .pdf-hint { font-size: 12.5px; color: #b8600a; background: #fff7ec; border: 1px solid #ffe0b8; border-radius: 8px; padding: 7px 10px; margin: 6px 0 4px; line-height: 1.4; }
 .print-fallback { margin: 2px 0 8px; }
