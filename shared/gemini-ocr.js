@@ -8,44 +8,58 @@
   const DEFAULT_KEY = ['AQ.', 'Ab8RN6IDuQ', 'HaTDSnKEra', 'he4OsNY-yO6', 'ZtDvccvXbf', 'n3hFM-uWw'].join('');
   // Chuỗi model dự phòng: thử lần lượt khi model trước bị quá tải/lỗi tạm thời.
   // gemini-flash-latest là alias luôn trỏ tới bản flash hiện hành → chống khai tử.
-  const MODELS = ['gemini-3.6-flash', 'gemini-flash-latest', 'gemini-2.5-flash'];
+  const MODELS = ['gemini-3.6-flash', 'gemini-flash-latest', 'gemini-flash-lite-latest'];
   const ENDPOINT = (model, key) =>
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key)}`;
 
   const PROMPTS = {
-    baogia: `Bạn là trợ lý trích xuất thông tin từ ảnh (screenshot chat/tin nhắn, file Word chụp lại, v.v.) cho công ty bê tông tươi.
-Đọc kỹ ảnh và trả về DUY NHẤT một JSON object (không markdown, không giải thích) theo schema:
-{
-  "customer": "Tên công ty khách hàng (viết hoa, đầy đủ CÔNG TY ...). Nếu không thấy → chuỗi rỗng.",
-  "project": "Tên/địa chỉ công trình. Nếu không thấy → chuỗi rỗng.",
-  "macs": [
-    { "name": "Mác bê tông, VD: 250, 300R7, M300/10", "price": "Đơn giá VNĐ/m³ dạng số không dấu phẩy, VD: 1250000", "slump": "Độ sụt cm, VD: 10, 12, 14 — nếu không rõ để chuỗi rỗng" }
-  ]
-}
-Quy tắc:
-- Giá luôn là số nguyên VNĐ (bỏ đơn vị, dấu phẩy/chấm ngăn cách nghìn).
-- Nếu ảnh chỉ có 1 giá tổng quát (VD "bê tông 1tr250") → tạo 1 mục với name "250" price "1250000".
-- Chỉ trả JSON hợp lệ, không bọc trong \`\`\`.`,
+    baogia: `Bạn trích xuất thông tin ĐẶT MUA BÊ TÔNG TƯƠI từ ảnh chụp (screenshot Zalo/tin nhắn/Word/giấy) và/hoặc đoạn text khách gửi.
+QUY TẮC BẮT BUỘC:
+1. BỎ QUA HOÀN TOÀN chữ nằm trong thẻ xem trước bản đồ / Google Maps nhúng (link maps.app.goo.gl, tên địa điểm POI hiển thị trong ô bản đồ, đánh giá sao). Chỉ đọc nội dung do người dùng GÕ/VIẾT trong tin nhắn.
+2. customer = tên công ty hoặc người MUA bê tông (bên đặt hàng / nhà thầu / người nhắn tin). Viết HOA đầy đủ dạng "CÔNG TY ...". Nếu chỉ có tên người thì ghi tên người.
+3. chu_dau_tu = chủ đầu tư (CĐT) của công trình nếu có nhắc; không có để rỗng.
+4. project = tên và/hoặc địa chỉ CÔNG TRÌNH do khách GÕ trong nội dung (VD "Khu dân cư NBB Garden III, Phú Định"). TUYỆT ĐỐI không lấy tên trong thẻ bản đồ nhúng.
+5. macs = danh sách mác bê tông khách yêu cầu. Mỗi mục: name (VD 250, 300R7, M300/10), price (đơn giá VNĐ/m³ số nguyên không dấu phẩy nếu có), slump (độ sụt cm nếu có). Giá bỏ đơn vị & dấu ngăn nghìn. Không có mác nào thì để mảng rỗng.
+6. TUYỆT ĐỐI không bịa. Không chắc thì để chuỗi rỗng.`,
 
-    dntt: `Bạn là trợ lý trích xuất công nợ bê tông từ ảnh (screenshot/word).
-Đọc kỹ ảnh và trả về DUY NHẤT một JSON object (không markdown, không giải thích):
-{
-  "customer": "Tên công ty khách (viết hoa đầy đủ). Nếu không thấy → \"\"",
-  "project": "Tên/địa chỉ công trình. Nếu không thấy → \"\"",
-  "rows": [
-    {
-      "ngay_cap": "dd/mm/yyyy — ngày cấp bê tông",
-      "mac": "Mác bê tông, VD: M300/14, 250R7/10",
-      "kl": "Khối lượng m³, số thập phân dùng dấu chấm, VD: 8.5",
-      "dg": "Đơn giá VNĐ/m³, số nguyên không dấu, VD: 1250000",
-      "pt": "Phụ thu tổng (VNĐ, số nguyên); không có → \"0\""
+    dntt: `Bạn trích xuất công nợ bê tông từ ảnh (screenshot/Word) và/hoặc text khách gửi.
+QUY TẮC:
+- BỎ QUA chữ trong thẻ bản đồ/Google Maps nhúng; chỉ đọc nội dung người dùng gõ/viết.
+- customer = tên công ty khách (viết HOA đầy đủ). project = tên/địa chỉ công trình.
+- rows = từng dòng cấp bê tông: ngay_cap (dd/mm/yyyy), mac (VD M300/14), kl (khối lượng m³, thập phân dùng dấu chấm), dg (đơn giá VNĐ/m³ số nguyên), pt (phụ thu tổng VNĐ số nguyên, không có → "0").
+- Không có bảng công nợ chi tiết → rows = []. Mọi số tiền là số nguyên, bỏ đơn vị/ngăn cách nghìn. Không bịa.`
+  };
+
+  // Schema ép cấu trúc JSON (controlled generation) — chính xác & type-safe hơn free-text.
+  const SCHEMAS = {
+    baogia: {
+      type: 'OBJECT',
+      properties: {
+        customer: { type: 'STRING' },
+        chu_dau_tu: { type: 'STRING' },
+        project: { type: 'STRING' },
+        macs: {
+          type: 'ARRAY',
+          items: { type: 'OBJECT', properties: { name: { type: 'STRING' }, price: { type: 'STRING' }, slump: { type: 'STRING' } } }
+        }
+      },
+      required: ['customer', 'project', 'macs']
+    },
+    dntt: {
+      type: 'OBJECT',
+      properties: {
+        customer: { type: 'STRING' },
+        project: { type: 'STRING' },
+        rows: {
+          type: 'ARRAY',
+          items: {
+            type: 'OBJECT',
+            properties: { ngay_cap: { type: 'STRING' }, mac: { type: 'STRING' }, kl: { type: 'STRING' }, dg: { type: 'STRING' }, pt: { type: 'STRING' } }
+          }
+        }
+      },
+      required: ['customer', 'project', 'rows']
     }
-  ]
-}
-Quy tắc:
-- Nếu ảnh không có bảng công nợ chi tiết → rows = [].
-- Tất cả số tiền là số nguyên, bỏ đơn vị / ngăn cách nghìn.
-- Chỉ trả JSON, không markdown, không bọc \`\`\`.`
   };
 
   // ---------- CSS (inject 1 lần) ----------
@@ -104,22 +118,26 @@ Quy tắc:
   }
 
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-  // Lỗi tạm thời (quá tải / rate limit) → nên thử lại hoặc đổi model.
+  // Lỗi tạm thời (quá tải / rate limit) → thử lại cùng model.
   const isTransient = (status, msg) =>
     status === 429 || status === 500 || status === 503 ||
     /high demand|overload|unavailable|try again|rate limit|quota/i.test(msg || '');
+  // Lỗi chết người (sai key / hết quyền) → dừng hẳn, đổi model cũng vô ích (cùng 1 key).
+  const isFatal = (status, msg) =>
+    status === 400 || status === 401 || status === 403 ||
+    /api[_ ]?key|permission|invalid argument|api_key_invalid|forbidden/i.test(msg || '');
 
-  // Gọi 1 model, tự parse JSON. Trả {ok, data} hoặc ném lỗi có .transient.
-  async function callOnce(model, key, prompt, imgB64, mime) {
-    const body = {
-      contents: [{
-        parts: [
-          { text: prompt },
-          { inline_data: { mime_type: mime, data: imgB64 } }
-        ]
-      }],
-      generationConfig: { temperature: 0.1, responseMimeType: 'application/json' }
-    };
+  // Gọi 1 model, tự parse JSON. Ném lỗi có .transient / .fatal để loop xử lý.
+  // input = { imgB64?, mime?, text? } — cho phép ảnh, text, hoặc CẢ HAI cùng lúc.
+  async function callOnce(model, key, prompt, schema, input) {
+    const parts = [{ text: prompt }];
+    if (input.text && input.text.trim())
+      parts.push({ text: 'NỘI DUNG KHÁCH GỬI (text):\n' + input.text.trim() });
+    if (input.imgB64)
+      parts.push({ inline_data: { mime_type: input.mime || 'image/png', data: input.imgB64 } });
+    const gc = { temperature: 0, responseMimeType: 'application/json' };
+    if (schema) gc.responseSchema = schema;
+    const body = { contents: [{ parts }], generationConfig: gc };
     const r = await fetch(ENDPOINT(model, key), {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
@@ -127,7 +145,10 @@ Quy tắc:
     const j = await r.json();
     if (!r.ok) {
       const msg = (j && j.error && j.error.message) || ('HTTP ' + r.status);
-      const e = new Error(msg); e.transient = isTransient(r.status, msg); throw e;
+      const e = new Error(msg);
+      e.fatal = isFatal(r.status, msg);
+      e.transient = !e.fatal && isTransient(r.status, msg);
+      throw e;
     }
     const txt = j?.candidates?.[0]?.content?.parts?.[0]?.text || '';
     // Đôi khi model bọc ```json — cắt ra
@@ -138,19 +159,23 @@ Quy tắc:
 
   // Thử lần lượt các model; mỗi model retry 2 lần với backoff khi lỗi tạm thời.
   // onProgress(text) để cập nhật trạng thái cho người dùng thấy đang thử lại.
-  async function callGemini(key, prompt, imgB64, mime, onProgress) {
+  async function callGemini(key, prompt, schema, input, onProgress) {
     let lastErr;
     for (let mi = 0; mi < MODELS.length; mi++) {
       const model = MODELS[mi];
       for (let attempt = 1; attempt <= 2; attempt++) {
         try {
           if (onProgress && (mi > 0 || attempt > 1))
-            onProgress(`⏳ Google đang bận, thử lại (${model}, lần ${attempt})...`);
-          return await callOnce(model, key, prompt, imgB64, mime);
+            onProgress(`⏳ Google đang bận, thử lại (model ${mi + 1}/${MODELS.length}, lần ${attempt})...`);
+          return await callOnce(model, key, prompt, schema, input);
         } catch (e) {
           lastErr = e;
-          if (!e.transient) throw e;           // lỗi thật (sai key, ảnh hỏng) → dừng luôn
-          await sleep(attempt === 1 ? 1200 : 2500); // backoff rồi thử tiếp
+          if (e.fatal) throw e;                // sai key / hết quyền → đổi model vô ích, dừng hẳn
+          if (e.transient && attempt < 2) {    // quá tải → backoff rồi thử LẠI cùng model
+            await sleep(attempt === 1 ? 1200 : 2500);
+            continue;
+          }
+          break;                               // hết retry hoặc lỗi riêng model (404...) → sang model kế
         }
       }
     }
@@ -200,18 +225,20 @@ Quy tắc:
     mask.innerHTML = `
       <div class="ocr-dlg" role="dialog" aria-modal="true">
         <h3>📷 Đọc ảnh tự động</h3>
-        <p class="hint">Chọn ảnh (screenshot Zalo, Word, giấy...) — AI sẽ đọc và tự điền vào form.</p>
+        <p class="hint">Chọn ảnh (screenshot Zalo, Word, giấy...) <b>HOẶC</b> dán/gõ text — AI sẽ đọc và tự điền vào form.</p>
         <label class="ocr-drop" id="ocr-drop">
           <input type="file" accept="image/*" id="ocr-file">
           <div><b>📎 Chọn ảnh</b> hoặc kéo thả vào đây</div>
         </label>
         <button type="button" class="b-ghost" data-act="paste" style="width:100%;margin-top:6px;padding:11px;border-radius:10px;border:0;font-size:14px;font-weight:600;background:#eaf2ee;color:#0a7d33;cursor:pointer;">📋 Dán ảnh từ clipboard</button>
         <div id="ocr-preview-wrap"></div>
+        <div style="text-align:center;color:#889;font-size:12px;margin:10px 0 4px;">— hoặc dán/gõ nội dung text —</div>
+        <textarea id="ocr-text" placeholder="VD: Bên em là Công ty Xây dựng An Phú Gia, cần báo giá bê tông M300 độ sụt 12 cho công trình Khu dân cư NBB Garden III, Phú Định..." style="width:100%;min-height:70px;padding:10px;border:1px solid #d0d7d3;border-radius:8px;font-size:14px;box-sizing:border-box;font-family:inherit;resize:vertical;"></textarea>
         <div class="ocr-status" id="ocr-status" hidden></div>
         <div class="row">
           <button class="b-danger" data-act="key">Đổi key</button>
           <button class="b-ghost" data-act="cancel">Đóng</button>
-          <button class="b-primary" data-act="read" disabled>Đọc ảnh</button>
+          <button class="b-primary" data-act="read" disabled>Đọc &amp; điền</button>
         </div>
       </div>`;
     document.body.appendChild(mask);
@@ -221,6 +248,7 @@ Quy tắc:
     const previewWrap = mask.querySelector('#ocr-preview-wrap');
     const statusEl = mask.querySelector('#ocr-status');
     const btnRead = mask.querySelector('[data-act="read"]');
+    const textEl = mask.querySelector('#ocr-text');
     let currentFile = null;
 
     function setStatus(txt, cls) {
@@ -228,12 +256,18 @@ Quy tắc:
       statusEl.hidden = false; statusEl.className = 'ocr-status ' + (cls || '');
       statusEl.textContent = txt;
     }
+    // Bật nút "Đọc & điền" khi có ảnh HOẶC có text.
+    function refreshReadBtn() {
+      const hasText = !!(textEl.value && textEl.value.trim());
+      btnRead.disabled = !currentFile && !hasText;
+    }
+    textEl.addEventListener('input', refreshReadBtn);
     function acceptFile(f) {
       if (!f || !f.type.startsWith('image/')) return;
       currentFile = f;
       const url = URL.createObjectURL(f);
       previewWrap.innerHTML = `<img class="ocr-preview" src="${url}" alt="preview">`;
-      btnRead.disabled = false;
+      refreshReadBtn();
       setStatus('');
     }
     fileInp.addEventListener('change', () => acceptFile(fileInp.files[0]));
@@ -285,18 +319,23 @@ Quy tắc:
         if (k) key = k;
       }
       if (act === 'read') {
-        if (!currentFile) return;
+        const text = (textEl.value || '').trim();
+        if (!currentFile && !text) return;
         btnRead.disabled = true;
-        setStatus('⏳ Đang đọc ảnh...', 'load');
+        setStatus('⏳ Đang đọc & phân tích...', 'load');
         try {
-          const { data, mime } = await fileToBase64(currentFile);
-          const result = await callGemini(key, PROMPTS[module], data, mime, (t) => setStatus(t, 'load'));
+          const input = { text };
+          if (currentFile) {
+            const { data, mime } = await fileToBase64(currentFile);
+            input.imgB64 = data; input.mime = mime;
+          }
+          const result = await callGemini(key, PROMPTS[module], SCHEMAS[module], input, (t) => setStatus(t, 'load'));
           setStatus('✅ Đọc xong! Đang điền vào form...', 'ok');
           try { onResult(result); } catch (err) { console.error(err); }
           setTimeout(close, 600);
         } catch (err) {
           setStatus('❌ Lỗi: ' + (err.message || err), 'err');
-          btnRead.disabled = false;
+          refreshReadBtn();
         }
       }
     });

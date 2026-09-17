@@ -212,12 +212,19 @@
       module: 'baogia',
       onResult(data) {
         if (!data) return;
-        if (data.customer) document.getElementById('f-customer').value = String(data.customer).toUpperCase();
-        if (data.project) document.getElementById('f-project').value = String(data.project);
+        // Khách hàng = bên mua; nếu AI không thấy thì lấy tạm chủ đầu tư.
+        const cust = (data.customer && String(data.customer).trim()) || (data.chu_dau_tu && String(data.chu_dau_tu).trim()) || '';
+        if (cust) document.getElementById('f-customer').value = cust.toUpperCase();
+        // Công trình: kèm CĐT (nếu có và khác khách) để anh Đạt nắm ngữ cảnh.
+        let proj = data.project ? String(data.project).trim() : '';
+        const cdt = data.chu_dau_tu ? String(data.chu_dau_tu).trim() : '';
+        if (proj && cdt && cdt.toUpperCase() !== cust.toUpperCase()) proj += ' (CĐT: ' + cdt + ')';
+        if (proj) document.getElementById('f-project').value = proj;
         if (Array.isArray(data.macs) && data.macs.length && window.__baogiaSetMacs) {
           window.__baogiaSetMacs(data.macs);
         }
         document.getElementById('f-customer').dispatchEvent(new Event('input', { bubbles: true }));
+        document.getElementById('f-project').dispatchEvent(new Event('input', { bubbles: true }));
       }
     });
   });
