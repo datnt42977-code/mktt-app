@@ -9,9 +9,24 @@
 
   // Gợi ý mác — bấm chip để thêm nhanh
   const SUGGESTIONS = [
-    'M150R28', 'M200R28', 'M250R28', 'M300R28', 'M350R28', 'M400R28',
+    'M150R28', 'M200R28', 'M250R28', 'M300R28', 'M350R28', 'M400R28', 'M450R28', 'M500R28', 'M600R28',
     'C8', 'C12', 'C16', 'C20', 'C25', 'C30',
     'B20', 'B25', 'B30', 'B40',
+  ];
+
+  // Bảng quy đổi mác bê tông theo TCVN 5574 (B↔M) + EC2 (cấp bền C). Nguồn: TCVN 5574:2012 / EC2.
+  // M = cường độ nén mẫu lập phương 150mm (kG/cm²). C = fck,cyl / fck,cube (Eurocode).
+  const MAC_TABLE = [
+    { M: 'M100', B: 'B7.5', C: 'C8/10', mpa: '10' },
+    { M: 'M150', B: 'B12.5', C: 'C12/15', mpa: '15' },
+    { M: 'M200', B: 'B15', C: 'C16/20', mpa: '20' },
+    { M: 'M250', B: 'B20', C: 'C20/25', mpa: '25' },
+    { M: 'M300', B: 'B22.5', C: 'C25/30', mpa: '30' },
+    { M: 'M350', B: 'B25', C: '—', mpa: '32' },
+    { M: 'M400', B: 'B30', C: 'C30/37', mpa: '37' },
+    { M: 'M450', B: 'B35', C: 'C35/45', mpa: '45' },
+    { M: 'M500', B: 'B40', C: 'C40/50', mpa: '50' },
+    { M: 'M600', B: 'B45', C: 'C45/55', mpa: '55' },
   ];
 
   // ---------- number format ----------
@@ -309,6 +324,32 @@
     });
   }
 
+  // Bảng quy đổi mác (TCVN) — ẩn/hiện khi bấm nút. "Để sẵn nếu anh cần".
+  function setupQuyDoi() {
+    const btn = document.getElementById('btn-quydoi');
+    const box = document.getElementById('quydoi-box');
+    if (!btn || !box) return;
+    let built = false;
+    function build() {
+      let html = '<div class="quydoi-wrap"><table class="quydoi-table"><thead><tr>'
+        + '<th>Mác (M)</th><th>Cấp bền (B)</th><th>Cấp C (EC2)</th><th>MPa</th></tr></thead><tbody>';
+      MAC_TABLE.forEach((r) => {
+        html += `<tr><td>${r.M}</td><td>${r.B}</td><td>${r.C}</td><td>${r.mpa}</td></tr>`;
+      });
+      html += '</tbody></table>'
+        + '<div class="quydoi-note">Quy đổi gần đúng theo TCVN 5574 (B↔M) và EC2 (cấp C). '
+        + 'VD: C12 ≈ M150, C20 ≈ M250, C30 ≈ M400. M = cường độ nén mẫu lập phương 150mm.</div></div>';
+      box.innerHTML = html;
+      built = true;
+    }
+    btn.addEventListener('click', () => {
+      const show = box.hidden;
+      if (show && !built) build();
+      box.hidden = !show;
+      btn.textContent = show ? '📋 Ẩn bảng quy đổi mác' : '📋 Bảng quy đổi mác (TCVN)';
+    });
+  }
+
   function renderRowList() {
     const root = document.getElementById('mac-list');
     root.innerHTML = '';
@@ -534,6 +575,7 @@
 
     loadState();
     renderChips();
+    setupQuyDoi();
     renderRowList();
     syncAll();
 
