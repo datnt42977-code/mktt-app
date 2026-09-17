@@ -6,7 +6,7 @@
   const KEY_LS = 'mktt_gemini_key';
   // Key mặc định của anh Đạt — chẻ nhỏ để tránh secret-scanner của GitHub, ghép lại lúc chạy
   const DEFAULT_KEY = ['AQ.', 'Ab8RN6IDuQ', 'HaTDSnKEra', 'he4OsNY-yO6', 'ZtDvccvXbf', 'n3hFM-uWw'].join('');
-  const MODEL = 'gemini-2.5-flash';
+  const MODEL = 'gemini-3.6-flash';
   const ENDPOINT = (key) =>
     `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${encodeURIComponent(key)}`;
 
