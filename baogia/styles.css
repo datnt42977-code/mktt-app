@@ -270,17 +270,13 @@ body {
   display: flex;
   justify-content: center;
   margin-top: 4pt; /* ngay dưới tiêu đề công ty */
-  height: 100pt;
-  overflow: hidden;
 }
-/* Crop phần trắng phía trên của ảnh chữ ký (ảnh gốc có nhiều khoảng trắng
-   trên đầu, chữ ký + tên nằm ở phần dưới). Phóng ảnh lên lớn rồi dùng
-   margin-top âm + overflow hidden để chỉ hiện phần chữ ký + tên. */
+/* Ảnh chữ ký ĐÃ cắt sát sẵn (signature-tight.png) → chiều cao DOM = chiều cao
+   thật, không dùng trò phóng-to-rồi-crop nữa → in ra không đo nhầm, không nhảy trang. */
 .q-signature-img {
-  height: 175pt;
+  height: 130pt;
   width: auto;
-  max-width: none;
-  margin-top: -75pt;
+  max-width: 100%;
 }
 
 /* Red editable text on screen */

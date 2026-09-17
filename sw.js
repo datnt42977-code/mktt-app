@@ -1,5 +1,5 @@
 // MKTT App service worker — cache launcher + module Báo Giá + ĐNTT (offline).
-const VERSION = 'v26';
+const VERSION = 'v27';
 const CACHE = 'mktt-app-' + VERSION;
 
 const ASSETS = [
@@ -22,6 +22,7 @@ const ASSETS = [
   'baogia/assets/logo.png',
   'baogia/assets/stamp.png',
   'baogia/assets/signature.png',
+  'baogia/assets/signature-tight.png',
 
   // Module Đề Nghị Thanh Toán
   'dntt/index.html',
