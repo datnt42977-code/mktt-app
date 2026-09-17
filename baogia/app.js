@@ -337,8 +337,8 @@
         html += `<tr><td>${r.M}</td><td>${r.B}</td><td>${r.C}</td><td>${r.mpa}</td></tr>`;
       });
       html += '</tbody></table>'
-        + '<div class="quydoi-note">Quy đổi gần đúng theo TCVN 5574 (B↔M) và EC2 (cấp C). '
-        + 'VD: C12 ≈ M150, C20 ≈ M250, C30 ≈ M400. M = cường độ nén mẫu lập phương 150mm.</div></div>';
+        + '<div class="quydoi-note">Quy đổi gần đúng: M↔B theo TCVN 5574; cột C theo <b>EC2 (châu Âu)</b> — VD C12 ≈ M150, C30 ≈ M400. '
+        + '⚠️ Nếu bản vẽ do <b>nhà thầu Trung Quốc</b> (tiêu chuẩn GB) thì C = MPa mẫu lập phương: C30 ≈ M300, C25 ≈ M250. Nên hỏi lại khách khi thấy ký hiệu C.</div></div>';
       box.innerHTML = html;
       built = true;
     }
