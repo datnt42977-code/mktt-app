@@ -257,7 +257,7 @@ body {
 .q-signature {
   display: flex;
   justify-content: space-between;
-  margin-top: calc(24pt * var(--fit));
+  margin-top: calc(12pt * var(--fit));
 }
 .q-sig-col {
   width: 45%;
@@ -270,17 +270,17 @@ body {
   display: flex;
   justify-content: center;
   margin-top: 4pt; /* ngay dưới tiêu đề công ty */
-  height: 240pt;
+  height: 172pt;
   overflow: hidden;
 }
 /* Crop phần trắng phía trên của ảnh chữ ký (ảnh gốc có nhiều khoảng trắng
    trên đầu, chữ ký + tên nằm ở phần dưới). Phóng ảnh lên lớn rồi dùng
    margin-top âm + overflow hidden để chỉ hiện phần chữ ký + tên. */
 .q-signature-img {
-  height: 420pt;
+  height: 300pt;
   width: auto;
   max-width: none;
-  margin-top: -180pt;
+  margin-top: -128pt;
 }
 
 /* Red editable text on screen */
