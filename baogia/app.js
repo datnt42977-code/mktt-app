@@ -638,30 +638,6 @@
       window.QuoteActions.init({ collectState, applyState, pricesFromState, persist: saveState });
     } catch (_) {}
 
-    // [TẠM-TEST] ?pdftest=1 → seed mác + chạy html2pdf, hiện banner kết quả (gỡ sau khi verify).
-    if (location.search.indexOf('pdftest') >= 0) {
-      const showPdfTest = (t) => {
-        const d = document.createElement('div');
-        d.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#ff0;color:#000;font-size:26px;font-weight:bold;padding:18px;text-align:center;';
-        d.textContent = t; document.body.prepend(d);
-      };
-      rows.push({ name: 'M300R28', price: '1350000', slump: '12', manual: true });
-      rows.push({ name: 'M400R28', price: '1500000', slump: '10', manual: true });
-      applyLadder(); renderRowList(); syncAll();
-      setTimeout(async () => {
-        try {
-          const q = document.getElementById('quote');
-          q.style.transform = 'none'; q.style.boxShadow = 'none'; q.style.padding = '10mm 12mm 12mm';
-          q.style.width = '210mm'; q.style.maxWidth = 'none'; q.classList.add('pdf-mode');
-          await Promise.all([...q.querySelectorAll('img')].map((im) => im.decode ? im.decode().catch(() => {}) : Promise.resolve()));
-          const pdf = await html2pdf().set({ margin: 0, image: { type: 'jpeg', quality: 0.95 },
-            html2canvas: { scale: 1, useCORS: true, backgroundColor: '#fff' },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }, pagebreak: { mode: ['css', 'legacy'] } })
-            .from(q).toPdf().get('pdf');
-          showPdfTest('PDFTEST_OK pages=' + pdf.internal.getNumberOfPages());
-        } catch (e) { showPdfTest('PDFTEST_ERR ' + (e && e.message ? e.message : e)); }
-      }, 500);
-    }
   }
 
   if (document.readyState === 'loading') {

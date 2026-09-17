@@ -1,5 +1,5 @@
 // MKTT App service worker — cache launcher + module Báo Giá + ĐNTT (offline).
-const VERSION = 'v29t';
+const VERSION = 'v29'
 const CACHE = 'mktt-app-' + VERSION;
 
 const ASSETS = [
