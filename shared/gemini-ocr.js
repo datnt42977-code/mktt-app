@@ -6,9 +6,11 @@
   const KEY_LS = 'mktt_gemini_key';
   // Key mặc định của anh Đạt — chẻ nhỏ để tránh secret-scanner của GitHub, ghép lại lúc chạy
   const DEFAULT_KEY = ['AQ.', 'Ab8RN6IDuQ', 'HaTDSnKEra', 'he4OsNY-yO6', 'ZtDvccvXbf', 'n3hFM-uWw'].join('');
-  const MODEL = 'gemini-3.6-flash';
-  const ENDPOINT = (key) =>
-    `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${encodeURIComponent(key)}`;
+  // Chuỗi model dự phòng: thử lần lượt khi model trước bị quá tải/lỗi tạm thời.
+  // gemini-flash-latest là alias luôn trỏ tới bản flash hiện hành → chống khai tử.
+  const MODELS = ['gemini-3.6-flash', 'gemini-flash-latest', 'gemini-2.5-flash'];
+  const ENDPOINT = (model, key) =>
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key)}`;
 
   const PROMPTS = {
     baogia: `Bạn là trợ lý trích xuất thông tin từ ảnh (screenshot chat/tin nhắn, file Word chụp lại, v.v.) cho công ty bê tông tươi.
@@ -101,7 +103,14 @@ Quy tắc:
     });
   }
 
-  async function callGemini(key, prompt, imgB64, mime) {
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  // Lỗi tạm thời (quá tải / rate limit) → nên thử lại hoặc đổi model.
+  const isTransient = (status, msg) =>
+    status === 429 || status === 500 || status === 503 ||
+    /high demand|overload|unavailable|try again|rate limit|quota/i.test(msg || '');
+
+  // Gọi 1 model, tự parse JSON. Trả {ok, data} hoặc ném lỗi có .transient.
+  async function callOnce(model, key, prompt, imgB64, mime) {
     const body = {
       contents: [{
         parts: [
@@ -111,20 +120,41 @@ Quy tắc:
       }],
       generationConfig: { temperature: 0.1, responseMimeType: 'application/json' }
     };
-    const r = await fetch(ENDPOINT(key), {
+    const r = await fetch(ENDPOINT(model, key), {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
     });
     const j = await r.json();
     if (!r.ok) {
       const msg = (j && j.error && j.error.message) || ('HTTP ' + r.status);
-      throw new Error(msg);
+      const e = new Error(msg); e.transient = isTransient(r.status, msg); throw e;
     }
     const txt = j?.candidates?.[0]?.content?.parts?.[0]?.text || '';
     // Đôi khi model bọc ```json — cắt ra
     const clean = txt.trim().replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/```$/, '').trim();
     try { return JSON.parse(clean); }
     catch (e) { throw new Error('Không parse được JSON: ' + clean.slice(0, 120)); }
+  }
+
+  // Thử lần lượt các model; mỗi model retry 2 lần với backoff khi lỗi tạm thời.
+  // onProgress(text) để cập nhật trạng thái cho người dùng thấy đang thử lại.
+  async function callGemini(key, prompt, imgB64, mime, onProgress) {
+    let lastErr;
+    for (let mi = 0; mi < MODELS.length; mi++) {
+      const model = MODELS[mi];
+      for (let attempt = 1; attempt <= 2; attempt++) {
+        try {
+          if (onProgress && (mi > 0 || attempt > 1))
+            onProgress(`⏳ Google đang bận, thử lại (${model}, lần ${attempt})...`);
+          return await callOnce(model, key, prompt, imgB64, mime);
+        } catch (e) {
+          lastErr = e;
+          if (!e.transient) throw e;           // lỗi thật (sai key, ảnh hỏng) → dừng luôn
+          await sleep(attempt === 1 ? 1200 : 2500); // backoff rồi thử tiếp
+        }
+      }
+    }
+    throw lastErr || new Error('Không gọi được Gemini');
   }
 
   // ---------- Key setup dialog ----------
@@ -260,7 +290,7 @@ Quy tắc:
         setStatus('⏳ Đang đọc ảnh...', 'load');
         try {
           const { data, mime } = await fileToBase64(currentFile);
-          const result = await callGemini(key, PROMPTS[module], data, mime);
+          const result = await callGemini(key, PROMPTS[module], data, mime, (t) => setStatus(t, 'load'));
           setStatus('✅ Đọc xong! Đang điền vào form...', 'ok');
           try { onResult(result); } catch (err) { console.error(err); }
           setTimeout(close, 600);
