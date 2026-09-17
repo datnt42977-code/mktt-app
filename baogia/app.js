@@ -543,6 +543,71 @@
       if (last) last.focus();
     });
 
+    // ---------- Tải PDF sạch (html2pdf — KHÔNG qua máy in trình duyệt, hết dòng URL) ----------
+    const slug = (s) => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-zA-Z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 40) || 'BaoGia';
+
+    async function exportPDF() {
+      const q = document.getElementById('quote');
+      if (!q || typeof html2pdf === 'undefined') {
+        alert('Chưa tải được bộ tạo PDF. Kiểm tra mạng rồi thử lại.');
+        return;
+      }
+      saveState();
+      try { window.QuotesStore.addQuote(collectState()); } catch (_) {}
+      try { window.QuoteActions.refresh(); } catch (_) {}
+
+      const btn = document.getElementById('btn-pdf');
+      const oldTxt = btn ? btn.textContent : '';
+      if (btn) { btn.disabled = true; btn.textContent = '⏳ Đang tạo PDF...'; }
+
+      // Chuẩn hoá #quote về khổ A4 thật để chụp (bỏ shadow/margin/max-width màn hình).
+      const prev = { transform: q.style.transform, margin: q.style.margin, boxShadow: q.style.boxShadow,
+        padding: q.style.padding, width: q.style.width, maxWidth: q.style.maxWidth };
+      q.style.transform = 'none'; q.style.margin = '0'; q.style.boxShadow = 'none';
+      q.style.padding = '10mm 12mm 12mm'; q.style.width = '210mm'; q.style.maxWidth = 'none';
+
+      // Đợi ảnh (logo/dấu/chữ ký) tải xong, nếu không html2canvas ra trang trắng.
+      try { window.scrollTo(0, 0); } catch (_) {}
+      try {
+        await Promise.all([...q.querySelectorAll('img')].map((img) => {
+          if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+          if (img.decode) return img.decode().catch(() => {});
+          return new Promise((res) => { img.onload = img.onerror = res; });
+        }));
+      } catch (_) {}
+      await new Promise((r) => setTimeout(r, 120));
+
+      const cust = val('f-customer');
+      const date = (val('f-date') || formatToday()).replace(/\//g, '-');
+      const filename = `BaoGia_${slug(cust)}_${date}.pdf`;
+
+      // iOS Safari giới hạn canvas (~4096px/chiều) → tự hạ scale để không ra trang trắng.
+      const SAFE_MAX = 3800;
+      const hpx = q.offsetHeight || 1123, wpx = q.offsetWidth || 794;
+      let scale = Math.min(2, SAFE_MAX / hpx, SAFE_MAX / wpx);
+      if (!(scale > 0.5)) scale = 0.9;
+
+      const opt = {
+        margin: 0, filename,
+        image: { type: 'jpeg', quality: 0.95 },
+        html2canvas: { scale, useCORS: true, backgroundColor: '#ffffff', scrollX: 0, scrollY: 0,
+          windowWidth: q.scrollWidth, windowHeight: q.scrollHeight },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true },
+        pagebreak: { mode: ['css', 'legacy'] },
+      };
+      try {
+        await html2pdf().set(opt).from(q).save();
+      } catch (err) {
+        alert('Lỗi tạo PDF: ' + (err && err.message ? err.message : err) + '\nThử lại sau vài giây.');
+      } finally {
+        q.style.transform = prev.transform; q.style.margin = prev.margin; q.style.boxShadow = prev.boxShadow;
+        q.style.padding = prev.padding; q.style.width = prev.width; q.style.maxWidth = prev.maxWidth;
+        if (btn) { btn.disabled = false; btn.textContent = oldTxt; }
+      }
+    }
+    if (document.getElementById('btn-pdf')) document.getElementById('btn-pdf').addEventListener('click', exportPDF);
+
     document.getElementById('btn-print').addEventListener('click', () => {
       saveState();
       // Tự lưu snapshot vào lịch sử mỗi lần tạo báo giá.

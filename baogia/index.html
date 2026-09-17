@@ -73,7 +73,12 @@
     <label class="checkbox"><input type="checkbox" id="f-vat"> Có VAT</label>
   </fieldset>
 
-  <button type="button" id="btn-print" class="btn-primary">Tạo báo giá (In / Lưu PDF)</button>
+  <button type="button" id="btn-pdf" class="btn-primary">⬇️ Tải PDF (dùng cái này)</button>
+  <p class="pdf-hint no-print">Bấm nút xanh để tải PDF sạch. ĐỪNG dùng “In qua trình duyệt” — Safari sẽ tự chèn dòng URL github ở cuối trang.</p>
+  <details class="no-print print-fallback">
+    <summary>Cách in dự phòng (có thể dính URL)</summary>
+    <button type="button" id="btn-print">In qua trình duyệt</button>
+  </details>
 </form>
 
 <!-- PREVIEW A4 -->
@@ -221,6 +226,7 @@
   </div>
 </div>
 
+<script src="../vendor/html2pdf.bundle.min.js"></script>
 <script src="mac-price-ladder.js"></script>
 <script src="quotes-store.js"></script>
 <script src="quote-actions.js"></script>
