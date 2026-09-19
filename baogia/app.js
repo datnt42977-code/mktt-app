@@ -186,7 +186,7 @@
     quote.style.width = '210mm';
     quote.style.maxWidth = '210mm';
     quote.style.padding = '15mm';
-    quote.style.fontSize = 'calc(11pt * var(--fit))';
+    quote.style.fontSize = 'calc(var(--fs-body) * var(--fit))';
 
     // Bracket scale trong [0.45, 1.40]. Sàn 0.45 đủ co cho ≥3 mác bê tông
     // vẫn vừa 2 trang. Init best = lo để worst-case dùng scale nhỏ nhất,

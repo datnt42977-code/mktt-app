@@ -190,6 +190,14 @@ body {
 /* ================ PREVIEW A4 ================ */
 #quote {
   --fit: 1;
+  /* ===== THANG CỠ CHỮ DÙNG CHUNG (đồng bộ toàn báo giá) =====
+     Mọi text lấy từ 5 biến này → không còn chỗ to chỗ nhỏ lệch nhau.
+     Tất cả nhân var(--fit) để cơ chế co-giãn vừa 2 trang A4 vẫn hoạt động. */
+  --fs-body: 10.5pt;    /* đoạn văn, bảng, ghi chú, danh sách — CÙNG 1 cỡ */
+  --fs-small: 9.5pt;    /* địa chỉ, MST/email, chú thích VAT */
+  --fs-section: 13pt;   /* tiêu đề mục màu xanh */
+  --fs-name: 13pt;      /* tên công ty ở header */
+  --fs-title: 18pt;     /* tít BÁO GIÁ BÊ TÔNG */
   width: 210mm;
   min-height: 297mm;
   padding: 15mm 15mm 15mm 15mm;
@@ -198,7 +206,7 @@ body {
   box-shadow: 0 0 6px rgba(0,0,0,.15);
   color: #000;
   position: relative;
-  font-size: calc(11pt * var(--fit));
+  font-size: calc(var(--fs-body) * var(--fit));
 }
 
 /* Dấu treo — top-left hanging seal overlapping header */
@@ -223,13 +231,13 @@ body {
 }
 .q-logo img { height: 70px; width: auto; display: block; }
 .q-company { flex: 1; }
-.q-name { font-weight: bold; font-size: calc(12pt * var(--fit)); }
-.q-addr { font-size: calc(10pt * var(--fit)); }
-.q-info { font-size: calc(10pt * var(--fit)); }
+.q-name { font-weight: bold; font-size: calc(var(--fs-name) * var(--fit)); }
+.q-addr { font-size: calc(var(--fs-small) * var(--fit)); }
+.q-info { font-size: calc(var(--fs-small) * var(--fit)); }
 
 .q-title {
   text-align: center;
-  font-size: calc(18pt * var(--fit));
+  font-size: calc(var(--fs-title) * var(--fit));
   font-weight: bold;
   margin: calc(10pt * var(--fit)) 0 calc(6pt * var(--fit));
 }
@@ -239,7 +247,7 @@ body {
 
 .q-section {
   color: #2D74B5;
-  font-size: calc(12pt * var(--fit));
+  font-size: calc(var(--fs-section) * var(--fit));
   font-weight: bold;
   margin: calc(10pt * var(--fit)) 0 calc(4pt * var(--fit));
 }
@@ -247,8 +255,10 @@ body {
 .q-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: calc(10.5pt * var(--fit));
+  font-size: calc(var(--fs-body) * var(--fit));
 }
+/* Ghi chú trong ô bảng (bơm cần/ngang) = đúng cỡ body, không lệch */
+.pump-notes, .pump-notes li { font-size: calc(var(--fs-body) * var(--fit)); }
 .q-table th, .q-table td {
   border: 0.75pt solid #000;
   padding: calc(3pt * var(--fit)) calc(4pt * var(--fit));
@@ -262,9 +272,9 @@ body {
 .q-table td.num, .q-table th:nth-child(5) { text-align: right; }
 .q-table td:first-child { text-align: center; }
 
-.q-vat-note { font-style: italic; margin: calc(4pt * var(--fit)) 0 0; }
+.q-vat-note { font-style: italic; font-size: calc(var(--fs-small) * var(--fit)); margin: calc(4pt * var(--fit)) 0 0; }
 
-.q-notes { font-size: calc(10.5pt * var(--fit)); margin: calc(6pt * var(--fit)) 0; }
+.q-notes { font-size: calc(var(--fs-body) * var(--fit)); margin: calc(6pt * var(--fit)) 0; }
 .q-notes ul { padding-left: 18pt; margin: calc(4pt * var(--fit)) 0; }
 
 .q-signature {
@@ -334,11 +344,16 @@ body {
     min-height: auto;
     padding: 12px;
     box-shadow: none;
-    font-size: 10pt;
+    /* Co ĐỀU cả thang cỡ chữ (không ép cứng từng phần) → bảng, ghi chú,
+       đoạn văn vẫn bằng nhau; tiêu đề vẫn hơn body đúng 1 cấp. */
+    --fs-body: 9.5pt;
+    --fs-small: 8.5pt;
+    --fs-section: 11.5pt;
+    --fs-name: 11.5pt;
+    --fs-title: 16pt;
   }
   .q-header { flex-direction: column; text-align: center; gap: 6px; }
   .q-logo img { height: 60px; }
-  .q-table { font-size: 9.5pt; }
 }
 
 /* Nut ve trang chu MKTT App */
