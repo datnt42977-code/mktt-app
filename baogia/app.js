@@ -3,7 +3,9 @@
   'use strict';
 
   const STORAGE_KEY = 'baogia-mktt-v2';
-  const MAX_ROWS = 10;
+  // Không giới hạn thực tế số mác (đủ cho cả dải M100–M700). Đặt cao để
+  // các slice/guard cũ vẫn an toàn nhưng không chặn anh Đạt thêm mác.
+  const MAX_ROWS = 99;
   // Người liên hệ mặc định — luôn điền sẵn nhưng có thể sửa cho từng báo giá.
   const DEFAULT_CONTACT = '0903.071.734 Mr Đạt';
 
