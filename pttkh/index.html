@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>Phiếu Thông Tin Khách Hàng MKTT</title>
+
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Phiếu KH">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="icon" href="assets/icon-192.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<a href="../index.html" class="no-print mktt-home">← MKTT App</a>
+
+<form id="form" class="no-print" autocomplete="off">
+  <h1>Phiếu Thông Tin Khách Hàng</h1>
+
+  <div class="form-actions">
+    <button type="button" id="btn-new">＋ Tạo mới</button>
+    <button type="button" id="btn-history">🕘 Lịch sử</button>
+    <button type="button" id="btn-save" class="btn-save">💾 Lưu</button>
+  </div>
+  <div id="draft-notice" class="draft-notice" hidden></div>
+  <div id="history-panel" hidden></div>
+  <div id="ocr-slot"></div>
+
+  <fieldset>
+    <legend>Đầu phiếu</legend>
+    <div class="two">
+      <label>Mã KH <input type="text" id="f-ma_kh" maxlength="30"></label>
+      <label>Công trình <input type="text" id="f-cong_trinh" maxlength="200" autocapitalize="words"></label>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>I. Thông tin khách hàng <span class="ocr-tag">📷 đọc ảnh để tự điền</span></legend>
+    <label>Khách hàng
+      <input type="text" id="f-kh" maxlength="250" placeholder="CÔNG TY ..." autocapitalize="characters" list="dl-customers">
+    </label>
+    <datalist id="dl-customers"></datalist>
+    <label>Địa chỉ <input type="text" id="f-dia_chi" maxlength="300"></label>
+    <div class="two">
+      <label>Mã số thuế <input type="text" id="f-mst" inputmode="numeric" maxlength="20"></label>
+      <label>Người đại diện <input type="text" id="f-nguoi_dd" maxlength="120" autocapitalize="words"></label>
+    </div>
+    <label>Người liên hệ trực tiếp <input type="text" id="f-nguoi_lh" maxlength="150"></label>
+    <div class="three">
+      <label>Cự ly đi (km) <input type="text" id="f-culy_di" inputmode="decimal" maxlength="8"></label>
+      <label>Cự ly về (km) <input type="text" id="f-culy_ve" inputmode="decimal" maxlength="8"></label>
+      <label>KL dự kiến (m³) <input type="text" id="f-kl_dk" inputmode="decimal" maxlength="10"></label>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>II. Đơn giá bê tông (VNĐ/m³)</legend>
+    <div class="tbl-scroll">
+      <table class="mtbl">
+        <thead><tr><th>STT</th><th>Mác bê tông</th><th>Độ sụt</th><th>Giá công nợ</th><th>Giá xuất HĐ</th><th>Ghi chú</th><th></th></tr></thead>
+        <tbody id="mac-body"></tbody>
+      </table>
+    </div>
+    <button type="button" id="btn-add-mac">＋ Thêm dòng mác</button>
+    <div class="sub-legend">Phụ gia / phụ phí (đơn giá sửa được):</div>
+    <div class="tbl-scroll">
+      <table class="mtbl atbl">
+        <thead><tr><th>STT</th><th>Nội dung</th><th>Đơn giá</th></tr></thead>
+        <tbody id="add-body"></tbody>
+      </table>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>III. Hình thức thanh toán</legend>
+    <label>Hình thức thanh toán <input type="text" id="f-tt_ht" maxlength="150"></label>
+    <div class="two">
+      <label>Thời hạn thanh toán <input type="text" id="f-tt_th" maxlength="100"></label>
+      <label>Hạn mức công nợ <input type="text" id="f-tt_hm" maxlength="100"></label>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>IV. Thông tin xuất hoá đơn</legend>
+    <label>Tên công ty <input type="text" id="f-hd_ten" maxlength="200"></label>
+    <div class="two">
+      <label>Mã số thuế <input type="text" id="f-hd_mst" inputmode="numeric" maxlength="20"></label>
+      <label>Email <input type="text" id="f-hd_email" maxlength="120"></label>
+    </div>
+    <label>Địa chỉ <input type="text" id="f-hd_diachi" maxlength="300"></label>
+  </fieldset>
+
+  <fieldset>
+    <legend>V. Chiết khấu (nếu có)</legend>
+    <div class="tbl-scroll">
+      <table class="mtbl">
+        <thead><tr><th>STT</th><th>Người nhận</th><th>Chức vụ</th><th>SĐT</th><th>Đơn giá</th><th>Ghi chú</th><th></th></tr></thead>
+        <tbody id="ck-body"></tbody>
+      </table>
+    </div>
+    <button type="button" id="btn-add-ck">＋ Thêm dòng chiết khấu</button>
+  </fieldset>
+
+  <fieldset>
+    <legend>VI. Ý kiến &amp; chữ ký</legend>
+    <label>Ý kiến <textarea id="f-ykien" maxlength="500" rows="2"></textarea></label>
+    <label>Tên NV Kinh doanh (ký) <input type="text" id="f-sign_nvkd" maxlength="60" value="NGUYỄN TẤN ĐẠT"></label>
+    <label class="checkbox"><input type="checkbox" id="f-kysong"> In để ký sống (bỏ chữ ký sẵn trên PDF)</label>
+  </fieldset>
+
+  <div class="fontsize-ctrl">
+    <span>Cỡ chữ PDF:</span>
+    <button type="button" id="btn-font-dec">A−</button>
+    <strong id="font-val">12</strong>
+    <button type="button" id="btn-font-inc">A+</button>
+    <button type="button" id="btn-font-reset" class="mini">↺</button>
+  </div>
+
+  <button type="button" id="btn-pdf" class="btn-primary">⬇️ Tải PDF gửi khách</button>
+  <p class="pdf-hint">Bấm nút xanh để tải PDF sạch. ĐỪNG dùng “In qua trình duyệt” — Safari sẽ chèn URL ở cuối trang.</p>
+</form>
+
+<!-- PREVIEW A4 -->
+<div id="preview-wrap">
+  <div id="quote" class="doc"></div>
+</div>
+
+<script src="../vendor/html2pdf.bundle.min.js"></script>
+<script src="../shared/gemini-ocr.js"></script>
+<script src="app.js"></script>
+<script>
+  window.addEventListener('load', () => {
+    if (!window.MkttOCR) return;
+    window.MkttOCR.mount({
+      containerId: 'ocr-slot',
+      module: 'pttkh',
+      onResult(d) {
+        if (!d) return;
+        const set = (id, val, up) => { if (val) { const e = document.getElementById(id); if (e) { e.value = up ? String(val).toUpperCase() : String(val); } } };
+        set('f-kh', d.kh, true);
+        set('f-dia_chi', d.dia_chi);
+        set('f-mst', d.mst);
+        set('f-nguoi_dd', d.nguoi_dd);
+        set('f-nguoi_lh', d.nguoi_lh);
+        if (window.__pttkhSync) window.__pttkhSync();
+      }
+    });
+  });
+</script>
+</body>
+</html>

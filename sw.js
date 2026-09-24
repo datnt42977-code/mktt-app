@@ -1,5 +1,5 @@
-// MKTT App service worker — cache launcher + module Báo Giá + ĐNTT (offline).
-const VERSION = 'v29'
+// MKTT App service worker — cache launcher + module Báo Giá + ĐNTT + Phiếu KH (offline).
+const VERSION = 'v31'
 const CACHE = 'mktt-app-' + VERSION;
 
 const ASSETS = [
@@ -34,6 +34,16 @@ const ASSETS = [
   'dntt/assets/signature.png',
   'dntt/assets/sign-tight.png',
   'dntt/assets/banner.png',
+
+  // Module Phiếu Thông Tin Khách Hàng
+  'pttkh/index.html',
+  'pttkh/styles.css',
+  'pttkh/app.js',
+  'pttkh/assets/logo.png',
+  'pttkh/assets/sign-dat.png',
+  'pttkh/assets/stamp-treo.png',
+  'pttkh/assets/icon-192.png',
+  'pttkh/assets/apple-touch-icon.png',
 
   // Shared
   'shared/gemini-ocr.js',

@@ -27,7 +27,17 @@ QUY TẮC:
 - BỎ QUA chữ trong thẻ bản đồ/Google Maps nhúng; chỉ đọc nội dung người dùng gõ/viết.
 - customer = tên công ty khách (viết HOA đầy đủ). project = tên/địa chỉ công trình.
 - rows = từng dòng cấp bê tông: ngay_cap (dd/mm/yyyy), mac (VD M300/14), kl (khối lượng m³, thập phân dùng dấu chấm), dg (đơn giá VNĐ/m³ số nguyên), pt (phụ thu tổng VNĐ số nguyên, không có → "0").
-- Không có bảng công nợ chi tiết → rows = []. Mọi số tiền là số nguyên, bỏ đơn vị/ngăn cách nghìn. Không bịa.`
+- Không có bảng công nợ chi tiết → rows = []. Mọi số tiền là số nguyên, bỏ đơn vị/ngăn cách nghìn. Không bịa.`,
+
+    pttkh: `Bạn trích xuất THÔNG TIN KHÁCH HÀNG từ ảnh chụp (name card / danh thiếp, giấy phép kinh doanh, hợp đồng, con dấu công ty, screenshot Zalo...) và/hoặc text khách gửi. Dùng để điền Phiếu thông tin khách hàng ngành bê tông.
+QUY TẮC BẮT BUỘC:
+1. BỎ QUA chữ trong thẻ bản đồ/Google Maps nhúng; chỉ đọc nội dung thật.
+2. kh = tên khách hàng / công ty (viết HOA đầy đủ dạng "CÔNG TY ..."; nếu chỉ có tên người thì ghi tên người).
+3. dia_chi = địa chỉ đầy đủ của khách/công ty.
+4. mst = mã số thuế (chỉ chữ số, bỏ khoảng trắng/dấu gạch).
+5. nguoi_dd = người đại diện pháp luật (giám đốc / chủ hộ) nếu có.
+6. nguoi_lh = người liên hệ trực tiếp và/hoặc số điện thoại liên hệ.
+7. TUYỆT ĐỐI không bịa. Không chắc thì để chuỗi rỗng.`
   };
 
   // Schema ép cấu trúc JSON (controlled generation) — chính xác & type-safe hơn free-text.
@@ -59,6 +69,17 @@ QUY TẮC:
         }
       },
       required: ['customer', 'project', 'rows']
+    },
+    pttkh: {
+      type: 'OBJECT',
+      properties: {
+        kh: { type: 'STRING' },
+        dia_chi: { type: 'STRING' },
+        mst: { type: 'STRING' },
+        nguoi_dd: { type: 'STRING' },
+        nguoi_lh: { type: 'STRING' }
+      },
+      required: ['kh']
     }
   };
 
