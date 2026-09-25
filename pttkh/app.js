@@ -212,7 +212,7 @@
     const btn = $('btn-pdf'); const old = btn.textContent;
     btn.classList.add('pdf-busy'); btn.textContent = '⏳ Đang tạo PDF...';
     const prev = { t: q.style.transform, m: q.style.margin, sh: q.style.boxShadow, pv: wrap.style.getPropertyValue('--pv-scale'), h: wrap.style.height, ov: wrap.style.overflow };
-    q.style.transform = 'none'; q.style.margin = '0'; q.style.boxShadow = 'none';
+    q.style.transform = 'none'; q.style.margin = '0'; q.style.boxShadow = 'none'; q.classList.add('pdf-exporting');
     wrap.style.setProperty('--pv-scale', '1'); wrap.style.height = 'auto'; wrap.style.overflow = 'visible';
     try { window.scrollTo(0, 0); } catch (_) {}
     try { await Promise.all([...q.querySelectorAll('img')].map(img => { if (img.complete && img.naturalWidth > 0) return Promise.resolve(); if (img.decode) return img.decode().catch(() => {}); return new Promise(r => { img.onload = img.onerror = r; }); })); } catch (_) {}
@@ -225,7 +225,7 @@
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true }, pagebreak: { mode: ['css', 'legacy'] } };
     try { await html2pdf().set(opt).from(q).save(); }
     catch (err) { alert('Lỗi tạo PDF: ' + (err && err.message ? err.message : err)); }
-    finally { q.style.transform = prev.t; q.style.margin = prev.m; q.style.boxShadow = prev.sh; wrap.style.setProperty('--pv-scale', prev.pv || '1'); wrap.style.height = prev.h; wrap.style.overflow = prev.ov; btn.classList.remove('pdf-busy'); btn.textContent = old; }
+    finally { q.style.transform = prev.t; q.style.margin = prev.m; q.style.boxShadow = prev.sh; q.classList.remove('pdf-exporting'); wrap.style.setProperty('--pv-scale', prev.pv || '1'); wrap.style.height = prev.h; wrap.style.overflow = prev.ov; btn.classList.remove('pdf-busy'); btn.textContent = old; }
   }
 
   // ---------- init ----------

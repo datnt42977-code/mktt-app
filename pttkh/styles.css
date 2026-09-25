@@ -54,7 +54,8 @@ label.checkbox input{width:auto;margin:0}
   transform:scale(var(--pv-scale));transform-origin:top center;
   font-family:"Times New Roman",Times,serif;font-size:var(--pdf-font);line-height:1.4}
 .doc .pg{background:#fff;width:210mm;min-height:297mm;padding:12mm;box-shadow:0 6px 24px rgba(0,0,0,.16)}
-.doc .pg + .pg{margin-top:12px;page-break-before:always;break-before:page}
+.doc .pg + .pg{margin-top:14px;page-break-before:always;break-before:page}
+.doc.pdf-exporting .pg + .pg{margin-top:0}
 .doc table,.doc tr,.doc thead,.doc .sign{page-break-inside:avoid;break-inside:avoid}
 @media(max-width:640px){ #preview-wrap{--pv-scale:.62} .doc{margin-bottom:calc(-2 * 297mm * .38)} }
 .doc .d-head{display:flex;align-items:center;gap:10px;border-bottom:2px solid #0a7d33;padding-bottom:6px;margin-bottom:6px}
