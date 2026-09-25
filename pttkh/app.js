@@ -31,6 +31,8 @@
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const digits = (s) => String(s || '').replace(/\D/g, '');
   const money = (s) => { const n = parseInt(digits(s)); return n ? n.toLocaleString('vi-VN') : ''; };
+  // Ghi chú = Giá xuất HĐ − Giá công nợ (chênh lệch). Rỗng nếu thiếu 1 trong 2 giá.
+  const diffCN = (cn, hd) => { if (!digits(cn) || !digits(hd)) return ''; const d = (parseInt(digits(hd)) || 0) - (parseInt(digits(cn)) || 0); return d.toLocaleString('vi-VN'); };
   const TEXT_IDS = ['ma_kh', 'cong_trinh', 'kh', 'dia_chi', 'mst', 'nguoi_dd', 'nguoi_lh', 'culy_di', 'culy_ve', 'kl_dk', 'tt_ht', 'tt_th', 'tt_hm', 'hd_ten', 'hd_mst', 'hd_email', 'hd_diachi', 'ykien', 'sign_nvkd'];
 
   let STATE = blank();
@@ -55,7 +57,7 @@
       <td><input data-t="mac" data-i="${i}" data-f="s" value="${esc(m.s)}" style="width:54px"></td>
       <td><input data-t="mac" data-i="${i}" data-f="cn" value="${esc(m.cn)}" inputmode="numeric" placeholder="0"></td>
       <td><input data-t="mac" data-i="${i}" data-f="hd" value="${esc(m.hd)}" inputmode="numeric" placeholder="0"></td>
-      <td><input class="l" data-t="mac" data-i="${i}" data-f="gc" value="${esc(m.gc)}" placeholder="Chênh lệch/gửi giá"></td>
+      <td class="gc-calc l" data-gci="${i}" title="Tự tính = Giá xuất HĐ − Giá công nợ">${diffCN(m.cn, m.hd)}</td>
       <td>${STATE.mac.length > 1 ? `<span class="del" data-del="mac" data-i="${i}">✕</span>` : ''}</td>
     </tr>`).join('');
   }
@@ -150,8 +152,8 @@
   function renderDoc() {
     const p = STATE;
     const now = new Date();
-    const macRows = p.mac.map((m, i) => `<tr><td>${('0' + (i + 1)).slice(-2)}</td><td class="l">${esc(m.m)}</td><td>${esc(m.s)}</td><td class="n">${money(m.cn)}</td><td class="n">${money(m.hd)}</td><td class="l">${esc(m.gc)}</td></tr>`).join('');
-    const addRows = p.addon.map((a, i) => `<tr><td>${('0' + (i + 4)).slice(-2)}</td><td class="l">${esc(a.n)}</td><td class="n">${money(a.g)}</td></tr>`).join('');
+    const macRows = p.mac.map((m, i) => `<tr><td>${('0' + (i + 1)).slice(-2)}</td><td class="l">${esc(m.m)}</td><td>${esc(m.s)}</td><td class="n">${money(m.cn)}</td><td class="n">${money(m.hd)}</td><td class="n">${diffCN(m.cn, m.hd)}</td></tr>`).join('');
+    const addRows = p.addon.map((a, i) => `<tr><td>${('0' + (i + 4)).slice(-2)}</td><td class="l" colspan="2">${esc(a.n)}</td><td class="n" colspan="2">${money(a.g)}</td><td></td></tr>`).join('');
     const ckAny = p.ck.filter(c => c.ng || c.cv || c.sdt || c.dg || c.gc);
     const ckRows = (ckAny.length ? ckAny : [{}]).map((c, i) => `<tr><td>${('0' + (i + 1)).slice(-2)}</td><td class="l">${esc(c.ng || '')}</td><td class="l">${esc(c.cv || '')}</td><td>${esc(c.sdt || '')}</td><td class="n">${money(c.dg)}</td><td class="l">${esc(c.gc || '')}</td></tr>`).join('');
     const sig = p.kysong ? '' : '<img src="assets/sign-dat.png" alt="Chữ ký">';
@@ -224,7 +226,7 @@
     loadDraft(); applyFont(); loadCustomers(); apply();
     // input events
     $('form').addEventListener('input', (e) => {
-      if (e.target.matches('input[data-t]')) { const t = e.target.dataset.t, i = +e.target.dataset.i, f = e.target.dataset.f; if (STATE[t] && STATE[t][i]) STATE[t][i][f] = e.target.value; renderDoc(); saveDraft(); return; }
+      if (e.target.matches('input[data-t]')) { const t = e.target.dataset.t, i = +e.target.dataset.i, f = e.target.dataset.f; if (STATE[t] && STATE[t][i]) STATE[t][i][f] = e.target.value; if (t === 'mac' && (f === 'cn' || f === 'hd')) { const cell = document.querySelector(`.gc-calc[data-gci="${i}"]`); if (cell) cell.textContent = diffCN(STATE.mac[i].cn, STATE.mac[i].hd); } renderDoc(); saveDraft(); return; }
       if (e.target.id && e.target.id.startsWith('f-')) sync();
     });
     $('form').addEventListener('change', (e) => { if (e.target.id === 'f-kysong') sync(); });

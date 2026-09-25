@@ -30,6 +30,7 @@ label.checkbox input{width:auto;margin:0}
 .mtbl input{width:100%;border:none;background:transparent;font-size:12px;font-family:inherit;text-align:center;padding:7px 3px;margin:0;border-radius:0}
 .mtbl input.l{text-align:left}
 .mtbl .del{color:#c33;font-weight:bold;cursor:pointer;padding:2px 6px;font-size:14px}
+.mtbl td.gc-calc{color:#0a7d33;font-weight:650;font-size:12px;text-align:right;padding:7px 6px;background:#f7fbf8}
 #btn-add-mac,#btn-add-ck{margin-top:7px;background:#eef7f0;border:1px dashed #9cc9ac;color:var(--g);border-radius:9px;padding:8px 12px;
   font-size:12.5px;font-weight:650;font-family:inherit;cursor:pointer}
 .draft-notice{background:#fff7e6;border:1px solid #ffe0a3;color:#7a5b16;border-radius:9px;padding:8px 10px;font-size:12.5px;margin-bottom:10px}
