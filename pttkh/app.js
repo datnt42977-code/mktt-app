@@ -188,7 +188,8 @@
       <div class="st">V. Chiết khấu (nếu có)</div>
       <table><thead><tr><th>STT</th><th>Người nhận</th><th>Chức vụ</th><th>SĐT</th><th>Đơn giá (VNĐ/m³)</th><th>Ghi chú</th></tr></thead><tbody>${ckRows}</tbody></table>
       <div class="st">VI. Ý kiến</div>
-      <div class="r" style="min-height:24px">${esc(p.ykien)}</div>
+      ${p.ykien ? `<div class="r">${esc(p.ykien)}</div>` : ''}
+      <div class="ylines">${'<div class="dotline"></div>'.repeat(4)}</div>
       <div class="d-date">TP.HCM, ngày ${now.getDate()} tháng ${now.getMonth() + 1} năm ${now.getFullYear()}</div>
       <div class="sign">
         <div class="col"><div class="role">Tổng Giám đốc</div><div class="gap"></div><div class="nm">Lê Thanh Tâm</div></div>

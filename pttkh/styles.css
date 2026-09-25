@@ -75,6 +75,8 @@ label.checkbox input{width:auto;margin:0}
 .doc .sign .gap img{max-height:64px;max-width:160px}
 .doc .sign .nm{font-weight:bold;text-transform:uppercase}
 .doc .d-date{text-align:right;font-style:italic;margin-top:10px}
+.doc .ylines{margin:6px 0 2px}
+.doc .ylines .dotline{border-bottom:1px dotted #555;height:26px}
 
 @media print{
   .no-print{display:none!important}
