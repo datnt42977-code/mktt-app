@@ -50,10 +50,13 @@ label.checkbox input{width:auto;margin:0}
 
 /* ===== A4 preview ===== */
 #preview-wrap{--pv-scale:1;margin:16px auto 0;max-width:620px;overflow:auto}
-.doc{background:#fff;color:#000;width:210mm;min-height:297mm;margin:0 auto;padding:12mm;
-  transform:scale(var(--pv-scale));transform-origin:top center;box-shadow:0 6px 24px rgba(0,0,0,.16);
+.doc{background:transparent;color:#000;width:210mm;margin:0 auto;
+  transform:scale(var(--pv-scale));transform-origin:top center;
   font-family:"Times New Roman",Times,serif;font-size:var(--pdf-font);line-height:1.4}
-@media(max-width:640px){ #preview-wrap{--pv-scale:.62} .doc{margin-bottom:calc(-297mm * .38)} }
+.doc .pg{background:#fff;width:210mm;min-height:297mm;padding:12mm;box-shadow:0 6px 24px rgba(0,0,0,.16)}
+.doc .pg + .pg{margin-top:12px;page-break-before:always;break-before:page}
+.doc table,.doc tr,.doc thead,.doc .sign{page-break-inside:avoid;break-inside:avoid}
+@media(max-width:640px){ #preview-wrap{--pv-scale:.62} .doc{margin-bottom:calc(-2 * 297mm * .38)} }
 .doc .d-head{display:flex;align-items:center;gap:10px;border-bottom:2px solid #0a7d33;padding-bottom:6px;margin-bottom:6px}
 .doc .d-head img{width:52px;height:52px;object-fit:contain}
 .doc .d-head .co{font-weight:bold;font-size:13px;color:#0a7d33;line-height:1.25}
@@ -78,4 +81,5 @@ label.checkbox input{width:auto;margin:0}
   body{background:#fff;padding:0}
   #preview-wrap{--pv-scale:1;margin:0;max-width:none;overflow:visible}
   .doc{box-shadow:none;transform:none;margin:0}
+  .doc .pg{box-shadow:none;margin:0}
 }

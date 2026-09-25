@@ -157,8 +157,10 @@
     const ckAny = p.ck.filter(c => c.ng || c.cv || c.sdt || c.dg || c.gc);
     const ckRows = (ckAny.length ? ckAny : [{}]).map((c, i) => `<tr><td>${('0' + (i + 1)).slice(-2)}</td><td class="l">${esc(c.ng || '')}</td><td class="l">${esc(c.cv || '')}</td><td>${esc(c.sdt || '')}</td><td class="n">${money(c.dg)}</td><td class="l">${esc(c.gc || '')}</td></tr>`).join('');
     const sig = p.kysong ? '' : '<img src="assets/sign-dat.png" alt="Chữ ký">';
-    $('quote').innerHTML = `
-      <div class="d-head"><img src="assets/logo.png" alt="MKTT"><div class="co">CÔNG TY TNHH BÊ TÔNG<br>MÊ KÔNG THƯƠNG TÍN</div></div>
+    const head = `<div class="d-head"><img src="assets/logo.png" alt="MKTT"><div class="co">CÔNG TY TNHH BÊ TÔNG<br>MÊ KÔNG THƯƠNG TÍN</div></div>`;
+    // ----- Trang 1: đầu phiếu + KH + bảng đơn giá -----
+    const page1 = `
+      ${head}
       <h2 class="d-title">Phiếu thông tin khách hàng</h2>
       <div class="r"><b>Mã KH:</b> ${esc(p.ma_kh)}</div>
       <div class="r"><b>Công trình:</b> ${esc(p.cong_trinh)}</div>
@@ -171,7 +173,10 @@
       <div class="r"><b>Cự ly vận chuyển:</b> lượt đi: ${esc(p.culy_di)} km; lượt về: ${esc(p.culy_ve)} km</div>
       <div class="r"><b>Khối lượng dự kiến:</b> ${esc(p.kl_dk)} m³</div>
       <div class="st">II. Đơn giá bê tông (VNĐ/m³)</div>
-      <table><thead><tr><th>STT</th><th>Mác bê tông</th><th>Độ sụt (cm)</th><th>Giá công nợ</th><th>Giá xuất HĐ</th><th>Ghi chú</th></tr></thead><tbody>${macRows}${addRows}</tbody></table>
+      <table><thead><tr><th>STT</th><th>Mác bê tông</th><th>Độ sụt (cm)</th><th>Giá công nợ</th><th>Giá xuất HĐ</th><th>Ghi chú</th></tr></thead><tbody>${macRows}${addRows}</tbody></table>`;
+    // ----- Trang 2: thanh toán + xuất HĐ + chiết khấu + ý kiến + chữ ký -----
+    const page2 = `
+      ${head}
       <div class="st">III. Hình thức thanh toán</div>
       <div class="r"><b>Hình thức thanh toán:</b> ${esc(p.tt_ht)}</div>
       <div class="r"><b>Thời hạn thanh toán:</b> ${esc(p.tt_th)}</div>
@@ -190,6 +195,7 @@
         <div class="col"><div class="role">Phòng Kinh doanh</div><div class="gap"></div><div class="nm">Nguyễn Thị Bé</div></div>
         <div class="col"><div class="role">NV. Kinh doanh</div><div class="gap">${sig}</div><div class="nm">${esc(p.sign_nvkd)}</div></div>
       </div>`;
+    $('quote').innerHTML = `<div class="pg">${page1}</div><div class="pg">${page2}</div>`;
   }
 
   // ---------- font size ----------
