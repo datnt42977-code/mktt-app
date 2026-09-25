@@ -220,10 +220,23 @@
     const filename = `PTTKH_${slug(STATE.kh)}_${(new Date()).toISOString().slice(0, 10)}.pdf`;
     const SAFE = 3800, hpx = q.offsetHeight || 1123, wpx = q.offsetWidth || 794;
     let scale = Math.min(2, SAFE / hpx, SAFE / wpx); if (!(scale > 0.5)) scale = 0.9;
-    const opt = { margin: 0, filename, image: { type: 'jpeg', quality: 0.95 },
-      html2canvas: { scale, useCORS: true, backgroundColor: '#ffffff', scrollX: 0, scrollY: 0, windowWidth: q.scrollWidth, windowHeight: q.scrollHeight },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true }, pagebreak: { mode: ['css', 'legacy'] } };
-    try { await html2pdf().set(opt).from(q).save(); }
+    const canvasOpt = { scale, useCORS: true, backgroundColor: '#ffffff' };
+    const jsPDFopt = { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true };
+    const pages = [...q.querySelectorAll('.pg')];
+    try {
+      if (pages.length > 1) {
+        // Trang 1 render qua html2pdf (đúng 1 trang); từ trang 2 ghép ảnh thủ công → mỗi .pg = đúng 1 trang A4 (hết lỗi dư trang do slicing)
+        const pdf = await html2pdf().set({ margin: 0, image: { type: 'jpeg', quality: 0.95 }, html2canvas: canvasOpt, jsPDF: jsPDFopt, pagebreak: { mode: ['css'] } }).from(pages[0]).toPdf().get('pdf');
+        for (let i = 1; i < pages.length; i++) {
+          const c = await html2pdf().set({ html2canvas: canvasOpt }).from(pages[i]).toCanvas().get('canvas');
+          let h = 210 * c.height / c.width; if (h > 297) h = 297;
+          pdf.addPage(); pdf.addImage(c.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, 210, h, undefined, 'FAST');
+        }
+        pdf.save(filename);
+      } else {
+        await html2pdf().set({ margin: 0, filename, image: { type: 'jpeg', quality: 0.95 }, html2canvas: canvasOpt, jsPDF: jsPDFopt, pagebreak: { mode: ['css', 'legacy'] } }).from(q).save();
+      }
+    }
     catch (err) { alert('Lỗi tạo PDF: ' + (err && err.message ? err.message : err)); }
     finally { q.style.transform = prev.t; q.style.margin = prev.m; q.style.boxShadow = prev.sh; q.classList.remove('pdf-exporting'); wrap.style.setProperty('--pv-scale', prev.pv || '1'); wrap.style.height = prev.h; wrap.style.overflow = prev.ov; btn.classList.remove('pdf-busy'); btn.textContent = old; }
   }
