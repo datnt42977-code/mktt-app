@@ -31,8 +31,8 @@
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const digits = (s) => String(s || '').replace(/\D/g, '');
   const money = (s) => { const n = parseInt(digits(s)); return n ? n.toLocaleString('vi-VN') : ''; };
-  // Ghi chú = Giá xuất HĐ − Giá công nợ (chênh lệch). Rỗng nếu thiếu 1 trong 2 giá.
-  const diffCN = (cn, hd) => { if (!digits(cn) || !digits(hd)) return ''; const d = (parseInt(digits(hd)) || 0) - (parseInt(digits(cn)) || 0); return d.toLocaleString('vi-VN'); };
+  // Ghi chú = Giá công nợ − Giá xuất HĐ (chênh lệch). Rỗng nếu thiếu 1 trong 2 giá.
+  const diffCN = (cn, hd) => { if (!digits(cn) || !digits(hd)) return ''; const d = (parseInt(digits(cn)) || 0) - (parseInt(digits(hd)) || 0); return d.toLocaleString('vi-VN'); };
   const TEXT_IDS = ['ma_kh', 'cong_trinh', 'kh', 'dia_chi', 'mst', 'nguoi_dd', 'nguoi_lh', 'culy_di', 'culy_ve', 'kl_dk', 'tt_ht', 'tt_th', 'tt_hm', 'hd_ten', 'hd_mst', 'hd_email', 'hd_diachi', 'ykien', 'sign_nvkd'];
 
   let STATE = blank();
@@ -57,7 +57,7 @@
       <td><input data-t="mac" data-i="${i}" data-f="s" value="${esc(m.s)}" style="width:54px"></td>
       <td><input data-t="mac" data-i="${i}" data-f="cn" value="${esc(m.cn)}" inputmode="numeric" placeholder="0"></td>
       <td><input data-t="mac" data-i="${i}" data-f="hd" value="${esc(m.hd)}" inputmode="numeric" placeholder="0"></td>
-      <td class="gc-calc l" data-gci="${i}" title="Tự tính = Giá xuất HĐ − Giá công nợ">${diffCN(m.cn, m.hd)}</td>
+      <td class="gc-calc l" data-gci="${i}" title="Tự tính = Giá công nợ − Giá xuất HĐ">${diffCN(m.cn, m.hd)}</td>
       <td>${STATE.mac.length > 1 ? `<span class="del" data-del="mac" data-i="${i}">✕</span>` : ''}</td>
     </tr>`).join('');
   }
