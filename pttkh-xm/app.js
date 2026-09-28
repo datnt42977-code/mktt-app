@@ -14,6 +14,7 @@
   const digits = (s) => String(s || '').replace(/\D/g, '');
   const money = (s) => { const n = parseInt(digits(s)); return n ? n.toLocaleString('vi-VN') : ''; };
   const TEXT_IDS = ['ma_kh', 'cong_trinh', 'kh', 'dia_chi', 'mst', 'nguoi_dd', 'nguoi_lh', 'dd_nhan', 'kl_dk', 'tt_ht', 'tt_th', 'tt_hm', 'hd_email', 'ykien', 'sign_gd', 'sign_nvkd'];
+  const XM_TYPES = ['Xi măng FICO PCBfs40 loại 1'];
   const newXm = () => ({ loai: '', mua: '', ban: '', hd: '', culy: '', cuoc: '', gc: '' });
 
   let STATE = blank();
@@ -33,7 +34,7 @@
     const num = (i, f, v) => `<td><input data-t="xm" data-i="${i}" data-f="${f}" value="${esc(v)}" inputmode="numeric" placeholder="0"></td>`;
     $('xm-body').innerHTML = STATE.xm.map((x, i) => `<tr>
       <td>${i + 1}</td>
-      <td><input class="l" data-t="xm" data-i="${i}" data-f="loai" value="${esc(x.loai)}" placeholder="VD: XM FICO PCB40 bao"></td>
+      <td><input class="l" data-t="xm" data-i="${i}" data-f="loai" value="${esc(x.loai)}" placeholder="Chọn / gõ loại XM" list="dl-xm"></td>
       ${num(i, 'mua', x.mua)}${num(i, 'ban', x.ban)}${num(i, 'hd', x.hd)}<td><input data-t="xm" data-i="${i}" data-f="culy" value="${esc(x.culy || '')}" inputmode="decimal" placeholder="km" style="width:60px"></td>${num(i, 'cuoc', x.cuoc)}
       <td><input class="l" data-t="xm" data-i="${i}" data-f="gc" value="${esc(x.gc)}"></td>
       <td>${STATE.xm.length > 1 ? `<span class="del" data-del="xm" data-i="${i}">✕</span>` : ''}</td>
@@ -51,6 +52,7 @@
     </tr>`).join('');
   }
   function renderTables() { renderXm(); renderCk(); }
+  function loadXmTypes() { const dl = $('dl-xm'); if (dl) dl.innerHTML = XM_TYPES.map(x => `<option value="${esc(x)}">`).join(''); }
 
   // ---------- sync inputs <-> STATE ----------
   function collect() {
@@ -202,7 +204,7 @@
 
   // ---------- init ----------
   function init() {
-    loadDraft(); applyFont(); loadCustomers(); apply();
+    loadDraft(); applyFont(); loadCustomers(); loadXmTypes(); apply();
     $('form').addEventListener('input', (e) => {
       if (e.target.matches('input[data-t]')) { const t = e.target.dataset.t, i = +e.target.dataset.i, f = e.target.dataset.f; if (STATE[t] && STATE[t][i]) STATE[t][i][f] = e.target.value; renderDoc(); saveDraft(); return; }
       if (e.target.id && e.target.id.startsWith('f-')) sync();
