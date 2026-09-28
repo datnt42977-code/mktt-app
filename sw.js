@@ -94,9 +94,3 @@ self.addEventListener('fetch', (e) => {
     }))
   );
 });
-uest).then((hit) => hit || fetch(e.request).then((res) => {
-      if (res.ok) { const c = res.clone(); caches.open(CACHE).then((k) => k.put(e.request, c)); }
-      return res;
-    }))
-  );
-});
