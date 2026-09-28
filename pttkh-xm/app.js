@@ -121,7 +121,7 @@
     const p = STATE;
     const now = new Date();
     const xmAny = p.xm.filter(x => x.loai || x.mua || x.ban || x.hd || x.culy || x.cuoc || x.gc);
-    const xmRows = (xmAny.length ? xmAny : [newXm()]).map((x, i) => `<tr><td>${('0' + (i + 1)).slice(-2)}</td><td class="l">${esc(x.loai)}</td><td class="n">${money(x.mua)}</td><td class="n">${money(x.ban)}</td><td class="n">${money(x.hd)}</td><td>${esc(x.culy || '')}${x.culy ? ' km' : ''}</td><td class="n">${money(x.cuoc)}</td><td class="l">${esc(x.gc)}</td></tr>`).join('');
+    const xmRows = (xmAny.length ? xmAny : [newXm()]).map((x, i) => `<tr><td>${('0' + (i + 1)).slice(-2)}</td><td class="l">${esc(x.loai)}</td><td class="n">${money(x.mua)}</td><td class="n">${money(x.ban)}</td><td class="n">${money(x.hd)}</td><td>${esc(String(x.culy || '').replace(/\s*km\s*$/i, ''))}${x.culy ? ' km' : ''}</td><td class="n">${money(x.cuoc)}</td><td class="l">${esc(x.gc)}</td></tr>`).join('');
     const ckAny = p.ck.filter(c => c.ng || c.cv || c.sdt || c.dg || c.gc);
     const ckRows = (ckAny.length ? ckAny : [{}]).map((c, i) => `<tr><td>${('0' + (i + 1)).slice(-2)}</td><td class="l">${esc(c.ng || '')}</td><td class="l">${esc(c.cv || '')}</td><td>${esc(c.sdt || '')}</td><td class="n">${money(c.dg)}</td><td class="l">${esc(c.gc || '')}</td></tr>`).join('');
     const head = `<div class="d-head kh-head"><div class="co">${CO_NAME}<div class="addr">${CO_ADDR}</div></div></div>`;
