@@ -1,5 +1,5 @@
 // MKTT App service worker — cache launcher + module Báo Giá + ĐNTT + Phiếu KH (offline).
-const VERSION = 'v44'
+const VERSION = 'v45'
 const CACHE = 'mktt-app-' + VERSION;
 
 const ASSETS = [
@@ -44,6 +44,13 @@ const ASSETS = [
   'pttkh/assets/stamp-treo.png',
   'pttkh/assets/icon-192.png',
   'pttkh/assets/apple-touch-icon.png',
+
+  // Module Phiếu KH Xi Măng (Khôi Huy)
+  'pttkh-xm/index.html',
+  'pttkh-xm/styles.css',
+  'pttkh-xm/app.js',
+  'pttkh-xm/assets/icon-192.png',
+  'pttkh-xm/assets/apple-touch-icon.png',
 
   // Shared
   'shared/gemini-ocr.js',
