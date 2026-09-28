@@ -161,7 +161,7 @@
         <div class="col"><div class="role">NV. Kinh doanh</div><div class="gap"></div><div class="nm">${esc(p.sign_nvkd)}</div></div>
         <div class="col"><div class="role">Giám đốc</div><div class="gap"></div><div class="nm">${esc(p.sign_gd)}</div></div>
       </div>`;
-    $('quote').innerHTML = `<div class="pg">${page1}</div><div class="pg">${page2}</div>`;
+    $('quote').innerHTML = `<div class="pg doc">${page1}</div><div class="pg doc">${page2}</div>`;
   }
 
   // ---------- font size ----------
@@ -189,6 +189,8 @@
     const pages = [...q.querySelectorAll('.pg')];
     try {
       const pdf = await html2pdf().set({ margin: 0, image: { type: 'jpeg', quality: 0.95 }, html2canvas: canvasOpt, jsPDF: jsPDFopt, pagebreak: { mode: ['css'] } }).from(pages[0]).toPdf().get('pdf');
+      // html2pdf đôi khi đẻ thêm 1 trang trắng sau trang 1 → giữ đúng 1 trang
+      while (pdf.getNumberOfPages() > 1) pdf.deletePage(pdf.getNumberOfPages());
       for (let i = 1; i < pages.length; i++) {
         const c = await html2pdf().set({ html2canvas: canvasOpt }).from(pages[i]).toCanvas().get('canvas');
         let h = 210 * c.height / c.width; if (h > 297) h = 297;

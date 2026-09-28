@@ -93,3 +93,5 @@ label.checkbox input{width:auto;margin:0}
 .doc .kh-head .addr{font-weight:normal;font-size:11.5px;color:#333;margin-top:2px}
 .doc .xm-tbl th,.doc .xm-tbl td{font-size:.92em}
 
+.pg.doc{background:#fff;width:210mm;min-height:295mm;padding:12mm;box-sizing:border-box}
+
