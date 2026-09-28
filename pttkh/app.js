@@ -46,8 +46,8 @@
       addon: ADDONS.map(a => ({ n: a.n, g: a.g })),
       tt_ht: '', tt_th: '', tt_hm: '',
       hd_ten: '', hd_mst: '', hd_email: '', hd_diachi: '',
-      ck: [{ ng: 'NGUYỄN TẤN ĐẠT', cv: 'KD', sdt: '', dg: '', gc: '' }, { ng: '', cv: '', sdt: '', dg: '', gc: '' }, { ng: '', cv: '', sdt: '', dg: '', gc: '' }],
-      ykien: '', sign_nvkd: 'NGUYỄN TẤN ĐẠT', kysong: false,
+      ck: [{ ng: 'NGUYỄN TẤN ĐẠT', cv: 'KD', sdt: '', dg: '', gc: 'Thuế 25%' }, { ng: '', cv: '', sdt: '', dg: '', gc: '' }, { ng: '', cv: '', sdt: '', dg: '', gc: '' }],
+      ykien: '', sign_nvkd: 'NGUYỄN TẤN ĐẠT', kysong: false, ckGcInit: true,
     };
   }
 
@@ -121,8 +121,8 @@
 
   // ---------- draft ----------
   function saveDraft() { try { localStorage.setItem(DRAFT_KEY, JSON.stringify(STATE)); } catch (_) {} }
-  function loadDraft() { try { const d = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null'); if (d && typeof d === 'object') STATE = Object.assign(blank(), d); } catch (_) {} fillCk0(); }
-  function fillCk0() { const c = STATE.ck && STATE.ck[0]; if (c && !c.ng && !c.cv) { c.ng = 'NGUYỄN TẤN ĐẠT'; c.cv = 'KD'; } }
+  function loadDraft() { try { const d = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null'); if (d && typeof d === 'object') { STATE = Object.assign(blank(), d); if (!d.ckGcInit) STATE.ckGcInit = false; } } catch (_) {} fillCk0(); }
+  function fillCk0() { const c = STATE.ck && STATE.ck[0]; if (c && !c.ng && !c.cv) { c.ng = 'NGUYỄN TẤN ĐẠT'; c.cv = 'KD'; } if (c && !STATE.ckGcInit) { if (!c.gc) c.gc = 'Thuế 25%'; STATE.ckGcInit = true; } }
 
   // ---------- history ----------
   function getHistory() { try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); } catch (_) { return []; } }
