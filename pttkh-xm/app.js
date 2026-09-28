@@ -190,7 +190,8 @@
     try {
       const pdf = await html2pdf().set({ margin: 0, image: { type: 'jpeg', quality: 0.95 }, html2canvas: canvasOpt, jsPDF: jsPDFopt, pagebreak: { mode: ['css'] } }).from(pages[0]).toPdf().get('pdf');
       // html2pdf đôi khi đẻ thêm 1 trang trắng sau trang 1 → giữ đúng 1 trang
-      while (pdf.getNumberOfPages() > 1) pdf.deletePage(pdf.getNumberOfPages());
+      // chỉ xoá khi nội dung trang 1 thật sự vừa 1 trang A4 (≈1123px) — tránh cắt mất nội dung khi chữ to/bảng dài
+      if (pages[0].scrollHeight <= 1125) while (pdf.getNumberOfPages() > 1) pdf.deletePage(pdf.getNumberOfPages());
       for (let i = 1; i < pages.length; i++) {
         const c = await html2pdf().set({ html2canvas: canvasOpt }).from(pages[i]).toCanvas().get('canvas');
         let h = 210 * c.height / c.width; if (h > 297) h = 297;
