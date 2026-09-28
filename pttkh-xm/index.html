@@ -39,7 +39,7 @@
   </fieldset>
 
   <fieldset>
-    <legend>I. Thông tin khách hàng <span class="ocr-tag">📷 đọc ảnh để tự điền</span></legend>
+    <legend>I. Thông tin khách hàng &amp; xuất hoá đơn <span class="ocr-tag">📷 đọc ảnh để tự điền</span></legend>
     <label>Khách hàng
       <input type="text" id="f-kh" maxlength="250" placeholder="CÔNG TY ..." autocapitalize="characters" list="dl-customers">
     </label>
@@ -49,7 +49,10 @@
       <label>Mã số thuế <input type="text" id="f-mst" inputmode="numeric" maxlength="20"></label>
       <label>Người đại diện <input type="text" id="f-nguoi_dd" maxlength="120" autocapitalize="words"></label>
     </div>
-    <label>Người liên hệ trực tiếp <input type="text" id="f-nguoi_lh" maxlength="150"></label>
+    <div class="two">
+      <label>Người liên hệ trực tiếp <input type="text" id="f-nguoi_lh" maxlength="150"></label>
+      <label>Email nhận hoá đơn <input type="text" id="f-hd_email" maxlength="120"></label>
+    </div>
     <div class="two">
       <label>Địa điểm nhận hàng <input type="text" id="f-dd_nhan" maxlength="200"></label>
       <label>KL dự kiến (tấn) <input type="text" id="f-kl_dk" inputmode="decimal" maxlength="10"></label>
@@ -77,17 +80,7 @@
   </fieldset>
 
   <fieldset>
-    <legend>IV. Thông tin xuất hoá đơn</legend>
-    <label>Tên công ty <input type="text" id="f-hd_ten" maxlength="200"></label>
-    <div class="two">
-      <label>Mã số thuế <input type="text" id="f-hd_mst" inputmode="numeric" maxlength="20"></label>
-      <label>Email <input type="text" id="f-hd_email" maxlength="120"></label>
-    </div>
-    <label>Địa chỉ <input type="text" id="f-hd_diachi" maxlength="300"></label>
-  </fieldset>
-
-  <fieldset>
-    <legend>V. Chiết khấu (nếu có)</legend>
+    <legend>IV. Chiết khấu (nếu có)</legend>
     <div class="tbl-scroll">
       <table class="mtbl">
         <thead><tr><th>STT</th><th>Người nhận</th><th>Chức vụ</th><th>SĐT</th><th>Đơn giá</th><th>Ghi chú</th><th></th></tr></thead>
@@ -98,7 +91,7 @@
   </fieldset>
 
   <fieldset>
-    <legend>VI. Ý kiến &amp; chữ ký</legend>
+    <legend>V. Ý kiến &amp; chữ ký</legend>
     <label>Ý kiến <textarea id="f-ykien" maxlength="500" rows="2"></textarea></label>
     <div class="two">
       <label>Giám đốc (ký) <input type="text" id="f-sign_gd" maxlength="60" value="ĐẶNG DUY KHƯƠNG"></label>

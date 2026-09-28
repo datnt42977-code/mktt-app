@@ -13,7 +13,7 @@
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const digits = (s) => String(s || '').replace(/\D/g, '');
   const money = (s) => { const n = parseInt(digits(s)); return n ? n.toLocaleString('vi-VN') : ''; };
-  const TEXT_IDS = ['ma_kh', 'cong_trinh', 'kh', 'dia_chi', 'mst', 'nguoi_dd', 'nguoi_lh', 'dd_nhan', 'kl_dk', 'tt_ht', 'tt_th', 'tt_hm', 'hd_ten', 'hd_mst', 'hd_email', 'hd_diachi', 'ykien', 'sign_gd', 'sign_nvkd'];
+  const TEXT_IDS = ['ma_kh', 'cong_trinh', 'kh', 'dia_chi', 'mst', 'nguoi_dd', 'nguoi_lh', 'dd_nhan', 'kl_dk', 'tt_ht', 'tt_th', 'tt_hm', 'hd_email', 'ykien', 'sign_gd', 'sign_nvkd'];
   const newXm = () => ({ loai: '', mua: '', ban: '', hd: '', culy: '', cuoc: '', gc: '' });
 
   let STATE = blank();
@@ -130,12 +130,13 @@
       <h2 class="d-title">Phiếu thông tin khách hàng</h2>
       <div class="r"><b>Mã KH:</b> ${esc(p.ma_kh)}</div>
       <div class="r"><b>Công trình:</b> ${esc(p.cong_trinh)}</div>
-      <div class="st">I. Thông tin khách hàng</div>
+      <div class="st">I. Thông tin khách hàng &amp; xuất hoá đơn</div>
       <div class="r"><b>Khách hàng:</b> ${esc(p.kh)}</div>
       <div class="r"><b>Địa chỉ:</b> ${esc(p.dia_chi)}</div>
       <div class="r"><b>Mã số thuế:</b> ${esc(p.mst)}</div>
       <div class="r"><b>Người đại diện:</b> ${esc(p.nguoi_dd)}</div>
       <div class="r"><b>Người liên hệ trực tiếp:</b> ${esc(p.nguoi_lh)}</div>
+      <div class="r"><b>Email nhận hoá đơn:</b> ${esc(p.hd_email)}</div>
       <div class="r"><b>Địa điểm nhận hàng:</b> ${esc(p.dd_nhan)}</div>
       <div class="r"><b>Khối lượng dự kiến:</b> ${esc(p.kl_dk)}${p.kl_dk ? ' tấn' : ''}</div>
       <div class="st">II. Đơn giá xi măng (VNĐ/tấn)</div>
@@ -143,16 +144,12 @@
       <div class="st">III. Hình thức thanh toán</div>
       <div class="r"><b>Hình thức thanh toán:</b> ${esc(p.tt_ht)}</div>
       <div class="r"><b>Thời hạn thanh toán:</b> ${esc(p.tt_th)}</div>
-      <div class="r"><b>Hạn mức công nợ:</b> ${esc(p.tt_hm)}</div>
-      <div class="st">IV. Thông tin xuất hoá đơn</div>
-      <div class="r"><b>Tên công ty:</b> ${esc(p.hd_ten)}</div>
-      <div class="r"><b>Mã số thuế:</b> ${esc(p.hd_mst)} &nbsp;&nbsp; <b>Email:</b> ${esc(p.hd_email)}</div>
-      <div class="r"><b>Địa chỉ:</b> ${esc(p.hd_diachi)}</div>`;
+      <div class="r"><b>Hạn mức công nợ:</b> ${esc(p.tt_hm)}</div>`;
     const page2 = `
       ${head}
-      <div class="st">V. Chiết khấu (nếu có)</div>
+      <div class="st">IV. Chiết khấu (nếu có)</div>
       <table><thead><tr><th>STT</th><th>Người nhận</th><th>Chức vụ</th><th>SĐT</th><th>Đơn giá (VNĐ/tấn)</th><th>Ghi chú</th></tr></thead><tbody>${ckRows}</tbody></table>
-      <div class="st">VI. Ý kiến</div>
+      <div class="st">V. Ý kiến</div>
       ${p.ykien ? `<div class="r">${esc(p.ykien)}</div>` : ''}
       <div class="ylines">${'<div class="dotline"></div>'.repeat(4)}</div>
       <div class="d-date">TP.HCM, ngày ${now.getDate()} tháng ${now.getMonth() + 1} năm ${now.getFullYear()}</div>
