@@ -14,7 +14,7 @@
   const digits = (s) => String(s || '').replace(/\D/g, '');
   const money = (s) => { const n = parseInt(digits(s)); return n ? n.toLocaleString('vi-VN') : ''; };
   const TEXT_IDS = ['ma_kh', 'cong_trinh', 'kh', 'dia_chi', 'mst', 'nguoi_dd', 'nguoi_lh', 'dd_nhan', 'kl_dk', 'tt_ht', 'tt_th', 'tt_hm', 'hd_ten', 'hd_mst', 'hd_email', 'hd_diachi', 'ykien', 'sign_gd', 'sign_nvkd'];
-  const newXm = () => ({ loai: '', mua: '', ban: '', hd: '', cuoc: '', gc: '' });
+  const newXm = () => ({ loai: '', mua: '', ban: '', hd: '', culy: '', cuoc: '', gc: '' });
 
   let STATE = blank();
   function blank() {
@@ -34,7 +34,7 @@
     $('xm-body').innerHTML = STATE.xm.map((x, i) => `<tr>
       <td>${i + 1}</td>
       <td><input class="l" data-t="xm" data-i="${i}" data-f="loai" value="${esc(x.loai)}" placeholder="VD: XM FICO PCB40 bao"></td>
-      ${num(i, 'mua', x.mua)}${num(i, 'ban', x.ban)}${num(i, 'hd', x.hd)}${num(i, 'cuoc', x.cuoc)}
+      ${num(i, 'mua', x.mua)}${num(i, 'ban', x.ban)}${num(i, 'hd', x.hd)}<td><input data-t="xm" data-i="${i}" data-f="culy" value="${esc(x.culy || '')}" inputmode="decimal" placeholder="km" style="width:60px"></td>${num(i, 'cuoc', x.cuoc)}
       <td><input class="l" data-t="xm" data-i="${i}" data-f="gc" value="${esc(x.gc)}"></td>
       <td>${STATE.xm.length > 1 ? `<span class="del" data-del="xm" data-i="${i}">✕</span>` : ''}</td>
     </tr>`).join('');
@@ -120,8 +120,8 @@
   function renderDoc() {
     const p = STATE;
     const now = new Date();
-    const xmAny = p.xm.filter(x => x.loai || x.mua || x.ban || x.hd || x.cuoc || x.gc);
-    const xmRows = (xmAny.length ? xmAny : [newXm()]).map((x, i) => `<tr><td>${('0' + (i + 1)).slice(-2)}</td><td class="l">${esc(x.loai)}</td><td class="n">${money(x.mua)}</td><td class="n">${money(x.ban)}</td><td class="n">${money(x.hd)}</td><td class="n">${money(x.cuoc)}</td><td class="l">${esc(x.gc)}</td></tr>`).join('');
+    const xmAny = p.xm.filter(x => x.loai || x.mua || x.ban || x.hd || x.culy || x.cuoc || x.gc);
+    const xmRows = (xmAny.length ? xmAny : [newXm()]).map((x, i) => `<tr><td>${('0' + (i + 1)).slice(-2)}</td><td class="l">${esc(x.loai)}</td><td class="n">${money(x.mua)}</td><td class="n">${money(x.ban)}</td><td class="n">${money(x.hd)}</td><td>${esc(x.culy || '')}${x.culy ? ' km' : ''}</td><td class="n">${money(x.cuoc)}</td><td class="l">${esc(x.gc)}</td></tr>`).join('');
     const ckAny = p.ck.filter(c => c.ng || c.cv || c.sdt || c.dg || c.gc);
     const ckRows = (ckAny.length ? ckAny : [{}]).map((c, i) => `<tr><td>${('0' + (i + 1)).slice(-2)}</td><td class="l">${esc(c.ng || '')}</td><td class="l">${esc(c.cv || '')}</td><td>${esc(c.sdt || '')}</td><td class="n">${money(c.dg)}</td><td class="l">${esc(c.gc || '')}</td></tr>`).join('');
     const head = `<div class="d-head kh-head"><div class="co">${CO_NAME}<div class="addr">${CO_ADDR}</div></div></div>`;
@@ -139,7 +139,7 @@
       <div class="r"><b>Địa điểm nhận hàng:</b> ${esc(p.dd_nhan)}</div>
       <div class="r"><b>Khối lượng dự kiến:</b> ${esc(p.kl_dk)}${p.kl_dk ? ' tấn' : ''}</div>
       <div class="st">II. Đơn giá xi măng (VNĐ/tấn)</div>
-      <table class="xm-tbl"><thead><tr><th>STT</th><th>Chủng loại XM</th><th>Giá mua vào</th><th>Giá bán ra</th><th>Giá xuất HĐ</th><th>Cước vận chuyển</th><th>Ghi chú</th></tr></thead><tbody>${xmRows}</tbody></table>
+      <table class="xm-tbl"><thead><tr><th>STT</th><th>Chủng loại XM</th><th>Giá mua vào</th><th>Giá bán ra</th><th>Giá xuất HĐ</th><th>Cự ly VC</th><th>Cước vận chuyển</th><th>Ghi chú</th></tr></thead><tbody>${xmRows}</tbody></table>
       <div class="st">III. Hình thức thanh toán</div>
       <div class="r"><b>Hình thức thanh toán:</b> ${esc(p.tt_ht)}</div>
       <div class="r"><b>Thời hạn thanh toán:</b> ${esc(p.tt_th)}</div>
