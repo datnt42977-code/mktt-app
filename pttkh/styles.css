@@ -86,3 +86,5 @@ label.checkbox input{width:auto;margin:0}
   .doc{box-shadow:none;transform:none;margin:0}
   .doc .pg{box-shadow:none;margin:0}
 }
+
+.pg.doc{background:#fff;width:210mm;min-height:295mm;padding:12mm;box-sizing:border-box}
