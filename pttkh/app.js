@@ -230,15 +230,23 @@
     try {
       if (pages.length > 1) {
         // Moi .pg chup thanh 1 anh -> dung 1 trang A4 (khong dung pagebreak: tranh bang bi day sang trang an roi bi xoa)
-        const JS = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
-        const pdf = new JS(jsPDFopt);
+        let pdf = null;
         for (let i = 0; i < pages.length; i++) {
           const pw = pages[i].offsetWidth || 794, ph = pages[i].scrollHeight || 1123;
           let s = Math.min(2, Math.sqrt(15000000 / (pw * ph))); if (!(s > 0.5)) s = 0.9;
           const c = await html2pdf().set({ html2canvas: { scale: s, useCORS: true, backgroundColor: '#ffffff' } }).from(pages[i]).toCanvas().get('canvas');
-          let w = 210, h = 210 * c.height / c.width; if (h > 297) { w = 210 * 297 / h; h = 297; }
-          if (i > 0) pdf.addPage();
-          pdf.addImage(c.toDataURL('image/jpeg', 0.95), 'JPEG', (210 - w) / 2, 0, w, h, undefined, 'FAST');
+          // dat anh vao khung dung ti le A4 (vua 1 trang, khong bi cat)
+          const A = document.createElement('canvas'); A.width = c.width; A.height = Math.round(c.width * 297 / 210);
+          const g = A.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, A.width, A.height);
+          const k = Math.min(1, A.height / c.height), dw = c.width * k; g.drawImage(c, (A.width - dw) / 2, 0, dw, c.height * k);
+          if (!pdf) {
+            // lay 1 doi tuong PDF trang tu html2pdf (khong dua anh qua html2pdf vi no tu cat anh thanh nhieu manh)
+            const tiny = document.createElement('div'); tiny.style.cssText = 'width:10px;height:10px;background:#fff';
+            pdf = await html2pdf().set({ margin: 0, jsPDF: jsPDFopt, html2canvas: { scale: 1 } }).from(tiny).toPdf().get('pdf');
+            while (pdf.getNumberOfPages() > 1) pdf.deletePage(pdf.getNumberOfPages());
+            pdf.setPage(1);
+          } else pdf.addPage();
+          pdf.addImage(A.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, 210, 297, undefined, 'FAST');
         }
         pdf.save(filename);
       } else {
