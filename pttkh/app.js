@@ -229,14 +229,16 @@
     const pages = [...q.querySelectorAll('.pg')];
     try {
       if (pages.length > 1) {
-        // Trang 1 render qua html2pdf (đúng 1 trang); từ trang 2 ghép ảnh thủ công → mỗi .pg = đúng 1 trang A4 (hết lỗi dư trang do slicing)
-        const pdf = await html2pdf().set({ margin: 0, image: { type: 'jpeg', quality: 0.95 }, html2canvas: canvasOpt, jsPDF: jsPDFopt, pagebreak: { mode: ['css'] } }).from(pages[0]).toPdf().get('pdf');
-        // bỏ trang trắng dư sau trang 1 (chỉ khi trang 1 vừa 1 khổ A4)
-        if (pages[0].scrollHeight <= 1125) while (pdf.getNumberOfPages() > 1) pdf.deletePage(pdf.getNumberOfPages());
-        for (let i = 1; i < pages.length; i++) {
-          const c = await html2pdf().set({ html2canvas: canvasOpt }).from(pages[i]).toCanvas().get('canvas');
-          let h = 210 * c.height / c.width; if (h > 297) h = 297;
-          pdf.addPage(); pdf.addImage(c.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, 210, h, undefined, 'FAST');
+        // Moi .pg chup thanh 1 anh -> dung 1 trang A4 (khong dung pagebreak: tranh bang bi day sang trang an roi bi xoa)
+        const JS = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
+        const pdf = new JS(jsPDFopt);
+        for (let i = 0; i < pages.length; i++) {
+          const pw = pages[i].offsetWidth || 794, ph = pages[i].scrollHeight || 1123;
+          let s = Math.min(2, Math.sqrt(15000000 / (pw * ph))); if (!(s > 0.5)) s = 0.9;
+          const c = await html2pdf().set({ html2canvas: { scale: s, useCORS: true, backgroundColor: '#ffffff' } }).from(pages[i]).toCanvas().get('canvas');
+          let w = 210, h = 210 * c.height / c.width; if (h > 297) { w = 210 * 297 / h; h = 297; }
+          if (i > 0) pdf.addPage();
+          pdf.addImage(c.toDataURL('image/jpeg', 0.95), 'JPEG', (210 - w) / 2, 0, w, h, undefined, 'FAST');
         }
         pdf.save(filename);
       } else {
