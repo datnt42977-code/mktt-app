@@ -198,6 +198,7 @@ body {
   --fs-section: 13pt;   /* tiêu đề mục màu xanh */
   --fs-name: 13pt;      /* tên công ty ở header */
   --fs-title: 18pt;     /* tít BÁO GIÁ BÊ TÔNG */
+  --uscale: 1;          /* hệ số cỡ chữ do người dùng chỉnh (A-/A+), nhân đè lên --fit */
   width: 210mm;
   min-height: 297mm;
   padding: 15mm 15mm 15mm 15mm;
@@ -206,7 +207,7 @@ body {
   box-shadow: 0 0 6px rgba(0,0,0,.15);
   color: #000;
   position: relative;
-  font-size: calc(var(--fs-body) * var(--fit));
+  font-size: calc(var(--fs-body) * var(--fit) * var(--uscale));
 }
 
 /* Dấu treo — top-left hanging seal overlapping header */
@@ -231,13 +232,13 @@ body {
 }
 .q-logo img { height: 70px; width: auto; display: block; }
 .q-company { flex: 1; }
-.q-name { font-weight: bold; font-size: calc(var(--fs-name) * var(--fit)); }
-.q-addr { font-size: calc(var(--fs-small) * var(--fit)); }
-.q-info { font-size: calc(var(--fs-small) * var(--fit)); }
+.q-name { font-weight: bold; font-size: calc(var(--fs-name) * var(--fit) * var(--uscale)); }
+.q-addr { font-size: calc(var(--fs-small) * var(--fit) * var(--uscale)); }
+.q-info { font-size: calc(var(--fs-small) * var(--fit) * var(--uscale)); }
 
 .q-title {
   text-align: center;
-  font-size: calc(var(--fs-title) * var(--fit));
+  font-size: calc(var(--fs-title) * var(--fit) * var(--uscale));
   font-weight: bold;
   margin: calc(10pt * var(--fit)) 0 calc(6pt * var(--fit));
 }
@@ -247,7 +248,7 @@ body {
 
 .q-section {
   color: #2D74B5;
-  font-size: calc(var(--fs-section) * var(--fit));
+  font-size: calc(var(--fs-section) * var(--fit) * var(--uscale));
   font-weight: bold;
   margin: calc(10pt * var(--fit)) 0 calc(4pt * var(--fit));
 }
@@ -255,10 +256,10 @@ body {
 .q-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: calc(var(--fs-body) * var(--fit));
+  font-size: calc(var(--fs-body) * var(--fit) * var(--uscale));
 }
 /* Ghi chú trong ô bảng (bơm cần/ngang) = đúng cỡ body, không lệch */
-.pump-notes, .pump-notes li { font-size: calc(var(--fs-body) * var(--fit)); }
+.pump-notes, .pump-notes li { font-size: calc(var(--fs-body) * var(--fit) * var(--uscale)); }
 .q-table th, .q-table td {
   border: 0.75pt solid #000;
   padding: calc(3pt * var(--fit)) calc(4pt * var(--fit));
@@ -272,9 +273,9 @@ body {
 .q-table td.num, .q-table th:nth-child(5) { text-align: right; }
 .q-table td:first-child { text-align: center; }
 
-.q-vat-note { font-style: italic; font-size: calc(var(--fs-small) * var(--fit)); margin: calc(4pt * var(--fit)) 0 0; }
+.q-vat-note { font-style: italic; font-size: calc(var(--fs-small) * var(--fit) * var(--uscale)); margin: calc(4pt * var(--fit)) 0 0; }
 
-.q-notes { font-size: calc(var(--fs-body) * var(--fit)); margin: calc(6pt * var(--fit)) 0; }
+.q-notes { font-size: calc(var(--fs-body) * var(--fit) * var(--uscale)); margin: calc(6pt * var(--fit)) 0; }
 .q-notes ul { padding-left: 18pt; margin: calc(4pt * var(--fit)) 0; }
 
 .q-signature {
@@ -304,6 +305,21 @@ body {
 
 /* Red editable text on screen */
 .r { color: #FF0000; }
+
+/* Ô chỉnh cỡ chữ PDF (A- / A+ / ↺) — giống app DNTT */
+.fontsize-ctrl {
+  display: flex; align-items: center; gap: 10px; justify-content: center;
+  background: #f0f4f2; border: 1px solid #d5e2da; border-radius: 10px;
+  padding: 8px 12px; margin: 12px 0 4px; font-size: 14px; color: #345;
+}
+.fontsize-ctrl button {
+  min-width: 44px; min-height: 40px; border: 1px solid #0a7d33; background: #fff;
+  color: #0a7d33; border-radius: 8px; font-size: 15px; font-weight: 700; cursor: pointer;
+}
+.fontsize-ctrl button:active { background: #eaf3ee; }
+.fontsize-ctrl #font-val { min-width: 52px; text-align: center; font-size: 16px; color: #0a7d33; font-weight: 700; }
+.fontsize-ctrl .mini { min-width: 40px; font-weight: 400; }
+@media print { .fontsize-ctrl { display: none !important; } }
 
 /* ================ PRINT ================ */
 @media print {

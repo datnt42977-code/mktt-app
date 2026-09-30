@@ -162,6 +162,29 @@
     });
   }
 
+  // ---------- Cỡ chữ do NGƯỜI DÙNG chỉnh (A- / A+ / ↺) ----------
+  // Hệ số --uscale nhân ĐÈ lên cỡ auto (--fit). 100% = giữ nguyên cỡ tự co
+  // vừa 2 trang; tăng/giảm để chữ to/nhỏ hơn theo ý (có thể tràn sang trang 3).
+  const USCALE_KEY = 'mktt_baogia_uscale_v1';
+  const USCALE_MIN = 0.7, USCALE_MAX = 1.5, USCALE_STEP = 0.05, USCALE_DEFAULT = 1;
+  function getUscale() {
+    let v = parseFloat(localStorage.getItem(USCALE_KEY) || '');
+    if (!Number.isFinite(v)) v = USCALE_DEFAULT;
+    return Math.min(USCALE_MAX, Math.max(USCALE_MIN, v));
+  }
+  function applyUscale(s) {
+    const q = document.getElementById('quote');
+    if (q) q.style.setProperty('--uscale', s.toFixed(3));
+    const label = document.getElementById('font-val');
+    if (label) label.textContent = Math.round(s * 100) + '%';
+  }
+  function setUscale(s) {
+    s = Math.min(USCALE_MAX, Math.max(USCALE_MIN, Math.round(s * 100) / 100));
+    try { localStorage.setItem(USCALE_KEY, String(s)); } catch (_) {}
+    applyUscale(s);
+    fitToTwoPages();
+  }
+
   // Co/giãn font + margin theo biến --fit để báo giá lấp gần đầy 2 trang A4
   // mà không tràn sang trang 3.
   function fitToTwoPages() {
@@ -188,7 +211,10 @@
     quote.style.width = '210mm';
     quote.style.maxWidth = '210mm';
     quote.style.padding = '15mm';
-    quote.style.fontSize = 'calc(var(--fs-body) * var(--fit))';
+    quote.style.fontSize = 'calc(var(--fs-body) * var(--fit) * var(--uscale))';
+    // Đo cỡ auto ở uscale=1 để --uscale là hệ số nhân THẬT (không bị auto-fit
+    // triệt tiêu). Khôi phục hệ số user sau khi đo xong.
+    quote.style.setProperty('--uscale', '1');
 
     // Bracket scale trong [0.45, 1.40]. Sàn 0.45 đủ co cho ≥3 mác bê tông
     // vẫn vừa 2 trang. Init best = lo để worst-case dùng scale nhỏ nhất,
@@ -214,6 +240,7 @@
     quote.style.maxWidth = prevMaxW;
     quote.style.padding = prevPad;
     quote.style.fontSize = prevFontSize;
+    applyUscale(getUscale()); // trả lại hệ số cỡ chữ do user chọn
   }
 
   // ---------- VAT ----------
@@ -628,6 +655,15 @@
         alert('Không mở được hộp thoại in. Vui lòng dùng menu Chia sẻ → In của trình duyệt.');
       }
     });
+
+    // Nút chỉnh cỡ chữ PDF (A- / A+ / ↺)
+    const fdec = document.getElementById('btn-font-dec');
+    const finc = document.getElementById('btn-font-inc');
+    const frst = document.getElementById('btn-font-reset');
+    if (fdec) fdec.addEventListener('click', () => setUscale(getUscale() - USCALE_STEP));
+    if (finc) finc.addEventListener('click', () => setUscale(getUscale() + USCALE_STEP));
+    if (frst) frst.addEventListener('click', () => setUscale(USCALE_DEFAULT));
+    applyUscale(getUscale());
 
     loadState();
     renderChips();
