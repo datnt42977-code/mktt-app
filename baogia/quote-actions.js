@@ -35,6 +35,7 @@
       date: '', customer: '', project: '', extra: '',
       rows: tpl.rows || [],
       pumpOn: tpl.pumpOn,
+      pumps: tpl.pumps, // giá bơm đã "Lưu làm mặc định" (mẫu cũ không có → giá gốc)
       vat: tpl.vat,
     });
     deps.persist();

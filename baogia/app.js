@@ -118,6 +118,7 @@
     syncExtra();
     syncMacPreview();
     syncPump();
+    syncPumpPrices();
     fitToTwoPages();
   }
 
@@ -131,6 +132,53 @@
     // Bảng giá bơm cố định (bơm cần + bơm ngang) — ẩn/hiện cả khối trong báo giá.
     const block = document.getElementById('q-pump-block');
     if (block) block.style.display = on ? '' : 'none';
+  }
+
+  // ---------- đơn giá bơm (sửa được) ----------
+  // Giá gốc = đúng bảng cố định trước đây. Báo giá/mẫu/lịch sử cũ chưa có
+  // field `pumps` sẽ tự lấy giá gốc này → không bị trống.
+  const DEFAULT_PUMPS = {
+    can1: { m3: '115.000', ca: '3.200.000' }, // bơm cần 37-42m
+    can2: { m3: '125.000', ca: '3.500.000' }, // bơm cần 47m
+    can3: { m3: '130.000', ca: '3.800.000' }, // bơm cần 52m
+    can4: { m3: '140.000', ca: '4.100.000' }, // bơm cần 56m
+    san1: { m3: '115.000', ca: '3.200.000' }, // bơm ngang sàn 1-4
+    san2: { m3: '125.000', ca: '3.700.000' }, // bơm ngang sàn 5-9
+  };
+  const PUMP_KEYS = ['m3', 'ca'];
+
+  // Trộn giá đã lưu lên giá gốc: thiếu dòng/ô nào thì dùng giá gốc.
+  function normalizePumps(p) {
+    const out = {};
+    Object.keys(DEFAULT_PUMPS).forEach((id) => {
+      out[id] = {};
+      PUMP_KEYS.forEach((k) => {
+        const saved = p && p[id] && p[id][k];
+        out[id][k] = saved != null ? formatVN(saved) : DEFAULT_PUMPS[id][k];
+      });
+    });
+    return out;
+  }
+
+  const pumpInputs = () => document.querySelectorAll('#form input[data-pump]');
+
+  function collectPumps() {
+    const out = normalizePumps(null);
+    pumpInputs().forEach((el) => { out[el.dataset.pump][el.dataset.k] = formatVN(el.value); });
+    return out;
+  }
+
+  function applyPumps(p) {
+    const n = normalizePumps(p);
+    pumpInputs().forEach((el) => { el.value = n[el.dataset.pump][el.dataset.k]; });
+  }
+
+  // Ô trong báo giá lấy đúng số đang nhập; để trống thì hiện gạch chờ điền.
+  function syncPumpPrices() {
+    const p = collectPumps();
+    document.querySelectorAll('#quote td[data-pump]').forEach((td) => {
+      td.textContent = p[td.dataset.pump][td.dataset.k] || '________';
+    });
   }
 
   // ---------- người liên hệ ----------
@@ -469,6 +517,7 @@
       customer: val('f-customer'), project: val('f-project'),
       contact: val('f-contact'), contactDefault: isChecked('f-contact-default'),
       pumpOn: isChecked('f-pump-on'),
+      pumps: collectPumps(),
       vat: document.getElementById('f-vat').checked,
       extra: val('f-extra'),
       rows: rows.map((r) => ({ name: r.name, price: r.price, slump: r.slump, manual: !!r.manual })),
@@ -480,6 +529,7 @@
     return {
       rows: (s.rows || []).map((r) => ({ name: r.name, price: r.price, slump: r.slump, manual: !!r.manual })),
       pumpOn: s.pumpOn,
+      pumps: normalizePumps(s.pumps),
       vat: s.vat,
     };
   }
@@ -495,6 +545,7 @@
       state.contactDefault != null ? state.contactDefault : !String(state.contact || '').trim());
     // Mặc định LUÔN có phần bơm; chỉ ẩn khi người dùng chủ động bỏ tick.
     setChecked('f-pump-on', state.pumpOn !== false);
+    applyPumps(state.pumps);
     document.getElementById('f-vat').checked = !!state.vat;
     setVal('f-extra', state.extra);
     rows = Array.isArray(state.rows)
@@ -559,6 +610,12 @@
       if (!e.target.checked) document.getElementById('f-contact').focus();
     });
     document.getElementById('f-pump-on').addEventListener('change', () => {
+      onAnyChange();
+    });
+    const pumpReset = document.getElementById('btn-pump-reset');
+    if (pumpReset) pumpReset.addEventListener('click', () => {
+      if (!confirm('Đưa toàn bộ đơn giá bơm về giá gốc?')) return;
+      applyPumps(null);
       onAnyChange();
     });
     document.getElementById('f-extra').addEventListener('input', onAnyChange);

@@ -57,7 +57,19 @@
     <legend>Bơm bê tông</legend>
     <label class="checkbox"><input type="checkbox" id="f-pump-on" checked> Có báo giá bơm</label>
     <div id="f-pump-wrap">
-      <p class="pump-fixed-note">Bảng giá bơm cố định theo Mê Kông Thương Tín (bơm cần + bơm ngang). Bật/tắt để hiện trong báo giá.</p>
+      <p class="pump-fixed-note">Sửa đơn giá bơm cho báo giá này. KL &gt;28m³ tính theo VNĐ/m³, KL ≤28m³ tính theo VNĐ/ca.</p>
+      <div class="pump-edit">
+        <div class="pump-edit-group">Bơm cần</div>
+        <div class="pump-edit-head"><span></span><span>VNĐ/m³</span><span>VNĐ/ca</span></div>
+        <div class="pump-edit-row"><span>37m - 42m</span><input type="text" class="num" inputmode="numeric" data-pump="can1" data-k="m3" aria-label="Bơm cần 37-42m VNĐ/m³"><input type="text" class="num" inputmode="numeric" data-pump="can1" data-k="ca" aria-label="Bơm cần 37-42m VNĐ/ca"></div>
+        <div class="pump-edit-row"><span>47m</span><input type="text" class="num" inputmode="numeric" data-pump="can2" data-k="m3" aria-label="Bơm cần 47m VNĐ/m³"><input type="text" class="num" inputmode="numeric" data-pump="can2" data-k="ca" aria-label="Bơm cần 47m VNĐ/ca"></div>
+        <div class="pump-edit-row"><span>52m</span><input type="text" class="num" inputmode="numeric" data-pump="can3" data-k="m3" aria-label="Bơm cần 52m VNĐ/m³"><input type="text" class="num" inputmode="numeric" data-pump="can3" data-k="ca" aria-label="Bơm cần 52m VNĐ/ca"></div>
+        <div class="pump-edit-row"><span>56m</span><input type="text" class="num" inputmode="numeric" data-pump="can4" data-k="m3" aria-label="Bơm cần 56m VNĐ/m³"><input type="text" class="num" inputmode="numeric" data-pump="can4" data-k="ca" aria-label="Bơm cần 56m VNĐ/ca"></div>
+        <div class="pump-edit-group">Bơm ngang (sàn)</div>
+        <div class="pump-edit-row"><span>Sàn 1 - 4</span><input type="text" class="num" inputmode="numeric" data-pump="san1" data-k="m3" aria-label="Bơm sàn 1-4 VNĐ/m³"><input type="text" class="num" inputmode="numeric" data-pump="san1" data-k="ca" aria-label="Bơm sàn 1-4 VNĐ/ca"></div>
+        <div class="pump-edit-row"><span>Sàn 5 - 9</span><input type="text" class="num" inputmode="numeric" data-pump="san2" data-k="m3" aria-label="Bơm sàn 5-9 VNĐ/m³"><input type="text" class="num" inputmode="numeric" data-pump="san2" data-k="ca" aria-label="Bơm sàn 5-9 VNĐ/ca"></div>
+        <button type="button" id="btn-pump-reset" class="pump-reset">↺ Về giá bơm gốc</button>
+      </div>
     </div>
   </fieldset>
 
@@ -172,10 +184,10 @@
         </tr>
       </thead>
       <tbody>
-        <tr><td>1</td><td>Bơm cần 37m – 42m</td><td class="num r">115.000</td><td class="num r">3.200.000</td><td>1 Đậu, 1 Dời</td></tr>
-        <tr><td>2</td><td>Bơm cần 47m</td><td class="num r">125.000</td><td class="num r">3.500.000</td><td>1 Lần đậu</td></tr>
-        <tr><td>3</td><td>Bơm cần 52m</td><td class="num r">130.000</td><td class="num r">3.800.000</td><td>1 Lần đậu</td></tr>
-        <tr><td>4</td><td>Bơm cần 56m</td><td class="num r">140.000</td><td class="num r">4.100.000</td><td>1 Lần đậu</td></tr>
+        <tr><td>1</td><td>Bơm cần 37m – 42m</td><td class="num r" data-pump="can1" data-k="m3">115.000</td><td class="num r" data-pump="can1" data-k="ca">3.200.000</td><td>1 Đậu, 1 Dời</td></tr>
+        <tr><td>2</td><td>Bơm cần 47m</td><td class="num r" data-pump="can2" data-k="m3">125.000</td><td class="num r" data-pump="can2" data-k="ca">3.500.000</td><td>1 Lần đậu</td></tr>
+        <tr><td>3</td><td>Bơm cần 52m</td><td class="num r" data-pump="can3" data-k="m3">130.000</td><td class="num r" data-pump="can3" data-k="ca">3.800.000</td><td>1 Lần đậu</td></tr>
+        <tr><td>4</td><td>Bơm cần 56m</td><td class="num r" data-pump="can4" data-k="m3">140.000</td><td class="num r" data-pump="can4" data-k="ca">4.100.000</td><td>1 Lần đậu</td></tr>
         <tr><td>5</td><td colspan="4">
           <ul class="pump-notes">
             <li>Trường hợp bơm cột, vách, cầu thang, đà kiềng thì đơn giá trên cộng thêm <b>15.000đ/m³</b> và <b>500.000đ/ca</b>.</li>
@@ -201,8 +213,8 @@
         </tr>
       </thead>
       <tbody>
-        <tr><td>1</td><td>Sàn 1 – 4</td><td class="num r">115.000</td><td class="num r">3.200.000</td><td>ống ≤ 80 mét</td></tr>
-        <tr><td>2</td><td>Sàn 5 – 9</td><td class="num r">125.000</td><td class="num r">3.700.000</td><td></td></tr>
+        <tr><td>1</td><td>Sàn 1 – 4</td><td class="num r" data-pump="san1" data-k="m3">115.000</td><td class="num r" data-pump="san1" data-k="ca">3.200.000</td><td>ống ≤ 80 mét</td></tr>
+        <tr><td>2</td><td>Sàn 5 – 9</td><td class="num r" data-pump="san2" data-k="m3">125.000</td><td class="num r" data-pump="san2" data-k="ca">3.700.000</td><td></td></tr>
         <tr><td>3</td><td colspan="4">
           <ul class="pump-notes">
             <li>Áp dụng cho lần ráp ống đầu tiên; trường hợp dời ống quá 30m ống thì tính thêm ca mới.</li>
