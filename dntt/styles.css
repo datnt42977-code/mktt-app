@@ -209,3 +209,7 @@ body {
 .intro-hint { font-size: 13px; color: #555; margin: 4px 0 8px; line-height: 1.5; }
 .intro-reset { margin-left: 6px; background: #fff; border: 1px solid #ccc; border-radius: 8px; padding: 4px 10px; font-size: 13px; cursor: pointer; }
 
+
+/* Giữ xuống dòng anh gõ trong câu đề nghị */
+#q-intro { white-space: pre-line; }
+
