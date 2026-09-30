@@ -59,6 +59,10 @@
     </label>
     <datalist id="dl-customers"></datalist>
     <label>Công trình <input type="text" id="f-project" maxlength="300" placeholder="Trạm biến áp 110kV ..." autocapitalize="words"></label>
+    <label>Câu đề nghị thanh toán
+      <textarea id="f-intro" rows="5"></textarea>
+    </label>
+    <p class="intro-hint">Giữ chữ <b>[công trình]</b> để tự chèn tên công trình vào đúng chỗ. <button type="button" id="btn-intro-reset" class="intro-reset">↺ Câu mặc định</button></p>
     <label>Tài khoản nhận thanh toán
       <select id="f-bank">
         <option value="cong_ty" selected>STK Công ty — BIDV 8600024006</option>
@@ -120,7 +124,7 @@
 
   <p class="q-body">Trước hết, Công ty TNHH Bê tông Mê Kông Thương Tín xin trân trọng cảm ơn sự hợp tác của Quý khách hàng trong thời gian qua.</p>
   <p class="q-body">Căn cứ vào báo giá và đơn đặt hàng giữa hai bên.</p>
-  <p class="q-body">Công ty TNHH Bê tông Mê Kông Thương Tín đề nghị Quý Công ty thanh toán cho công ty chúng tôi khoản công nợ của Công trình: <span class="r" id="q-project">________________________</span>. cụ thể như sau:</p>
+  <p class="q-body" id="q-intro">Công ty TNHH Bê tông Mê Kông Thương Tín đề nghị Quý Công ty thanh toán cho công ty chúng tôi khoản công nợ của Công trình: <span class="r" id="q-project">________________________</span>. cụ thể như sau:</p>
 
   <table class="q-table">
     <thead>

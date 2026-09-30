@@ -230,13 +230,36 @@
     el.value = d;
   }
 
+  // ---------- câu đề nghị thanh toán (sửa được) ----------
+  // [công trình] = chỗ chèn tên công trình (in đỏ như cũ).
+  const PROJECT_TOKEN = '[công trình]';
+  const DEFAULT_INTRO = 'Công ty TNHH Bê tông Mê Kông Thương Tín đề nghị Quý Công ty thanh toán cho công ty chúng tôi khoản công nợ của Công trình: ' + PROJECT_TOKEN + '. cụ thể như sau:';
+
+  function syncIntro() {
+    const p = $('q-intro');
+    if (!p) return;
+    const text = ($('f-intro') && $('f-intro').value.trim()) ? $('f-intro').value : DEFAULT_INTRO;
+    const proj = $('f-project').value.trim() || '________________________';
+    p.textContent = '';
+    const parts = text.split(PROJECT_TOKEN);
+    parts.forEach((part, i) => {
+      p.appendChild(document.createTextNode(part));
+      if (i < parts.length - 1) {
+        const s = document.createElement('span');
+        s.className = 'r';
+        s.textContent = proj;
+        p.appendChild(s);
+      }
+    });
+  }
+
   // ---------- sync preview ----------
   function syncAll() {
     const { day, month, year } = parseDate($('f-date').value);
     setText('q-day', day || '__'); setText('q-month', month || '__'); setText('q-year', year || '____');
     setText('q-title', ($('f-tieude').value || DEFAULT_TIEUDE).toUpperCase());
     setText('q-customer', $('f-customer').value.trim() || '________________________');
-    setText('q-project', $('f-project').value.trim() || '________________________');
+    syncIntro();
 
     // Badge số đợt (góc trên phải tờ A4)
     const dotEl = $('f-dot');
@@ -303,6 +326,7 @@
       savedAt: Date.now(),
       tieude: $('f-tieude').value, date: $('f-date').value,
       customer: $('f-customer').value, project: $('f-project').value,
+      intro: ($('f-intro') && $('f-intro').value) || DEFAULT_INTRO,
       bank: $('f-bank').value, kysong: $('f-kysong').checked,
       dot: ($('f-dot') && $('f-dot').value) || '',
       dutruoc: ($('f-dutruoc') && $('f-dutruoc').value) || '',
@@ -316,6 +340,7 @@
     if ($('f-dot')) $('f-dot').value = s.dot || '';
     $('f-customer').value = s.customer || '';
     $('f-project').value = s.project || '';
+    if ($('f-intro')) $('f-intro').value = s.intro || DEFAULT_INTRO; // bản cũ chưa có → câu mặc định
     $('f-bank').value = s.bank || 'cong_ty';
     $('f-kysong').checked = !!s.kysong;
     if ($('f-dutruoc')) $('f-dutruoc').value = s.dutruoc ? fmtVND(digitsOnly(String(s.dutruoc))) : '';
@@ -684,6 +709,11 @@
     attachTitleCase('f-customer');
     attachTitleCase('f-project');
     ['f-tieude', 'f-customer', 'f-project'].forEach((id) => $(id).addEventListener('input', onChange));
+    if ($('f-intro')) $('f-intro').addEventListener('input', onChange);
+    if ($('btn-intro-reset')) $('btn-intro-reset').addEventListener('click', () => {
+      $('f-intro').value = DEFAULT_INTRO;
+      onChange();
+    });
     // Tự đánh số đợt khi đổi khách / công trình (nếu ô đợt còn trống)
     ['f-customer', 'f-project'].forEach((id) => $(id).addEventListener('blur', () => { autoFillDot(false); onChange(); }));
     if ($('f-dot')) $('f-dot').addEventListener('input', () => {
