@@ -83,6 +83,19 @@ body {
 
 /* html2pdf KHÔNG áp dụng @media print → khi tạo PDF bằng nút Tải PDF,
    tạm gắn class .pdf-mode lên #quote để ép giống bản in: giá đỏ→đen + không tách trang giữa dòng. */
+/* QUAN TRỌNG: html2canvas chụp DOM thật ở viewport hiện tại. Trên iPhone (viewport < 800px)
+   luật @media (max-width:800px) bóp nhỏ --fs-* + logo + xếp header dọc → PDF ra chữ nhỏ,
+   KHÁC bản in (dùng @media print cỡ desktop). Ép lại cỡ/bố cục desktop khi tạo PDF để
+   PDF luôn giống hệt bản in, bất kể đang xem trên điện thoại hay máy tính. */
+#quote.pdf-mode {
+  --fs-body: 10.5pt;
+  --fs-small: 9.5pt;
+  --fs-section: 13pt;
+  --fs-name: 13pt;
+  --fs-title: 18pt;
+}
+#quote.pdf-mode .q-header { flex-direction: row; text-align: left; }
+#quote.pdf-mode .q-logo img { height: 70px; }
 #quote.pdf-mode .r { color: #000 !important; }
 #quote.pdf-mode .q-table tr { page-break-inside: avoid; break-inside: avoid; }
 #quote.pdf-mode .q-signature { page-break-inside: avoid; break-inside: avoid; }

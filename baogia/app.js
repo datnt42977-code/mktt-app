@@ -260,6 +260,14 @@
     quote.style.maxWidth = '210mm';
     quote.style.padding = '15mm';
     quote.style.fontSize = 'calc(var(--fs-body) * var(--fit) * var(--uscale))';
+    // Đo bằng CỠ CHỮ DESKTOP (cỡ mà bản in & PDF thực sự dùng). Nếu không, trên
+    // điện thoại luật @media(max-width:800px) bóp --fs-* nhỏ lại → --fit đo ra bị
+    // lớn quá, khi in/PDF cỡ desktop to hơn sẽ tràn sang trang 3. Gỡ sau khi đo.
+    quote.style.setProperty('--fs-body', '10.5pt');
+    quote.style.setProperty('--fs-small', '9.5pt');
+    quote.style.setProperty('--fs-section', '13pt');
+    quote.style.setProperty('--fs-name', '13pt');
+    quote.style.setProperty('--fs-title', '18pt');
     // Đo cỡ auto ở uscale=1 để --uscale là hệ số nhân THẬT (không bị auto-fit
     // triệt tiêu). Khôi phục hệ số user sau khi đo xong.
     quote.style.setProperty('--uscale', '1');
@@ -288,6 +296,12 @@
     quote.style.maxWidth = prevMaxW;
     quote.style.padding = prevPad;
     quote.style.fontSize = prevFontSize;
+    // Gỡ cỡ chữ desktop đã ép khi đo → trả lại cho CSS (mobile/desktop) quyết định.
+    quote.style.removeProperty('--fs-body');
+    quote.style.removeProperty('--fs-small');
+    quote.style.removeProperty('--fs-section');
+    quote.style.removeProperty('--fs-name');
+    quote.style.removeProperty('--fs-title');
     applyUscale(getUscale()); // trả lại hệ số cỡ chữ do user chọn
   }
 
