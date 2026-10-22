@@ -93,7 +93,9 @@ label.checkbox input{width:auto;margin:0}
 .doc .kh-head .addr{font-weight:normal;font-size:11.5px;color:#333;margin-top:2px}
 .doc .xm-tbl th,.doc .xm-tbl td{font-size:.92em}
 
-.pg.doc{background:#fff;width:210mm;min-height:295mm;padding:12mm;box-sizing:border-box}
+.pg.doc{background:#fff;width:210mm;min-height:295mm;padding:12mm;box-sizing:border-box;
+  /* .pg cũng mang class .doc → không được dính margin-bottom âm/scale của khung xem trên điện thoại (làm PDF bị cắt còn ~1/4 trang) */
+  transform:none;margin-bottom:0}
 
 
 /* PDF: bỏ thu nhỏ/margin âm của chế độ xem trên điện thoại khi xuất PDF */
