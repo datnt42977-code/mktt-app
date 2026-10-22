@@ -95,3 +95,6 @@ label.checkbox input{width:auto;margin:0}
 
 .pg.doc{background:#fff;width:210mm;min-height:295mm;padding:12mm;box-sizing:border-box}
 
+
+/* PDF: bỏ thu nhỏ/margin âm của chế độ xem trên điện thoại khi xuất PDF */
+.doc.pdf-exporting{margin-bottom:0!important;transform:none!important}

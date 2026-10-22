@@ -179,11 +179,16 @@
     q.style.transform = 'none'; q.style.margin = '0'; q.style.boxShadow = 'none'; q.classList.add('pdf-exporting');
     wrap.style.setProperty('--pv-scale', '1'); wrap.style.height = 'auto'; wrap.style.overflow = 'visible';
     try { window.scrollTo(0, 0); } catch (_) {}
-    await new Promise(r => setTimeout(r, 120));
+    // đợi logo/dấu/chữ ký tải xong, tránh trang trắng
+    try { await Promise.all([...q.querySelectorAll('img')].map(img => (img.complete && img.naturalWidth > 0) ? 0 : (img.decode ? img.decode().catch(() => {}) : new Promise(r => { img.onload = img.onerror = r; })))); } catch (_) {}
+    await new Promise(r => setTimeout(r, 150));
     const filename = `PTTKH_XiMang_${slug(STATE.kh)}_${(new Date()).toISOString().slice(0, 10)}.pdf`;
     const SAFE = 3800, hpx = q.offsetHeight || 1123, wpx = q.offsetWidth || 794;
     let scale = Math.min(2, SAFE / hpx, SAFE / wpx); if (!(scale > 0.5)) scale = 0.9;
-    const canvasOpt = { scale, useCORS: true, backgroundColor: '#ffffff' };
+    // iPhone: html2canvas mặc định chỉ chụp trong khung màn hình điện thoại → trang PDF bị cắt sau vài dòng.
+    // Ép khung chụp = khổ A4 desktop (≥ 794px, vượt media query 640px) và cao bằng toàn bộ phiếu.
+    const canvasOpt = { scale, useCORS: true, backgroundColor: '#ffffff', scrollX: 0, scrollY: 0,
+      windowWidth: Math.max(1024, q.scrollWidth), windowHeight: Math.max(1400, q.scrollHeight) };
     const jsPDFopt = { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true };
     const pages = [...q.querySelectorAll('.pg')];
     try {
