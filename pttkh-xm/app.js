@@ -154,7 +154,7 @@
       <div class="st">V. Ý kiến</div>
       ${p.ykien ? `<div class="r">${esc(p.ykien)}</div>` : ''}
       <div class="ylines">${'<div class="dotline"></div>'.repeat(4)}</div>
-      <div class="d-date">TP.HCM, ngày ${now.getDate()} tháng ${now.getMonth() + 1} năm ${now.getFullYear()}</div>
+      <div class="d-date">TP.HCM, ngày ....... tháng ....... năm ...........</div>
       <div class="sign">
         <div class="col"><div class="role">Xác nhận khách hàng</div><div class="gap"></div><div class="nm"></div></div>
         <div class="col"><div class="role">NV. Kinh doanh</div><div class="gap"></div><div class="nm">${esc(p.sign_nvkd)}</div></div>
