@@ -15,7 +15,7 @@
 
 
 <link rel="icon" href="assets/icon-192.png">
-<link rel="stylesheet" href="styles.css?v=57">
+<link rel="stylesheet" href="styles.css?v=58">
 </head>
 <body>
 
@@ -86,9 +86,7 @@
   </fieldset>
 
   <div class="stamp-ctrl no-print">
-    <span>Đóng trên PDF:</span>
-    <label><input type="checkbox" id="chk-sign" checked> ✍️ Chữ ký + tên</label>
-    <label><input type="checkbox" id="chk-stamp" checked> 🔴 Mộc (dấu treo)</label>
+    <label><input type="checkbox" id="chk-insong"> 🖊️ In sống — ẩn chữ ký + mộc</label>
   </div>
 
   <div class="fontsize-ctrl no-print">
@@ -258,16 +256,13 @@
 <script src="quote-actions.js"></script>
 <script src="app.js"></script>
 <script>
-// Bật/tắt chữ ký + mộc (mặc định có). Ẩn bằng visibility để chừa đúng chỗ ký/đóng dấu sống.
+// Tick "In sống" = ẩn CẢ chữ ký + mộc (chừa chỗ ký/đóng dấu tay). Mỗi lần mở app mặc định có chữ ký + mộc.
 (function(){
-  var q=document.getElementById('quote'), K='mktt_bg_stampOpts';
-  var o={}; try{ o=JSON.parse(localStorage.getItem(K)||'{}'); }catch(e){}
-  [['chk-sign','no-sign','sign'],['chk-stamp','no-stamp','stamp']].forEach(function(a){
-    var c=document.getElementById(a[0]); if(!c) return;
-    if(o[a[2]]===false) c.checked=false;
-    var apply=function(){ q.classList.toggle(a[1], !c.checked); o[a[2]]=c.checked; try{ localStorage.setItem(K, JSON.stringify(o)); }catch(e){} };
-    c.addEventListener('change', apply); apply();
-  });
+  var q=document.getElementById('quote'), c=document.getElementById('chk-insong');
+  try{ localStorage.removeItem('mktt_bg_stampOpts'); }catch(e){}
+  if(!q||!c) return;
+  var apply=function(){ q.classList.toggle('no-sign', c.checked); q.classList.toggle('no-stamp', c.checked); };
+  c.addEventListener('change', apply); apply();
 })();
 </script>
 <script src="../shared/gemini-ocr.js"></script>
