@@ -188,7 +188,11 @@
     // iPhone: html2canvas mặc định chỉ chụp trong khung màn hình điện thoại → trang PDF bị cắt sau vài dòng.
     // Ép khung chụp = khổ A4 desktop (≥ 794px, vượt media query 640px) và cao bằng toàn bộ phiếu.
     const canvasOpt = { scale, useCORS: true, backgroundColor: '#ffffff', scrollX: 0, scrollY: 0,
-      windowWidth: Math.max(1024, q.scrollWidth), windowHeight: Math.max(1400, q.scrollHeight) };
+      windowWidth: Math.max(1024, q.scrollWidth), windowHeight: Math.max(1400, q.scrollHeight),
+      // Khung chụp rộng 1024px làm khung html2pdf (margin:auto) bị căn giữa lệch so với màn hình thật
+      // → ảnh PDF lệch phải, mất mép phải. Ghim khung bản sao đúng vị trí khung thật.
+      onclone: (doc) => { try { const o = document.querySelector('.html2pdf__container'), c = doc.querySelector('.html2pdf__container');
+        if (o && c) { c.style.margin = '0'; c.style.right = 'auto'; c.style.left = o.getBoundingClientRect().left + 'px'; } } catch (_) {} } };
     const jsPDFopt = { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true };
     const pages = [...q.querySelectorAll('.pg')];
     try {
