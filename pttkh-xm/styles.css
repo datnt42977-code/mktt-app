@@ -1,4 +1,4 @@
-:root{ --g:#0a7d33; --g2:#12a049; --ink:#142; --line:#d0d7d3; --pdf-font:12px; }
+:root{ --g:#0a7d33; --g2:#12a049; --ink:#142; --line:#d0d7d3; --pdf-font:15px; }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:#eef2ee;color:var(--ink);
   padding:calc(10px + env(safe-area-inset-top)) 12px calc(30px + env(safe-area-inset-bottom))}
@@ -100,3 +100,26 @@ label.checkbox input{width:auto;margin:0}
 
 /* PDF: bỏ thu nhỏ/margin âm của chế độ xem trên điện thoại khi xuất PDF */
 .doc.pdf-exporting{margin-bottom:0!important;transform:none!important}
+
+/* ===== v61: chữ to + dãn hàng, lấp đầy khổ A4 (mọi cỡ chữ theo --pdf-font, nút A−/A+ vẫn dùng được) ===== */
+.doc{line-height:1.7}
+.pg.doc{padding:16mm 16mm 14mm;display:flex;flex-direction:column}
+.doc .kh-head{padding-bottom:3mm;margin-bottom:4mm}
+.doc .kh-head .co{font-size:1.3em;letter-spacing:.3px}
+.doc .kh-head .addr{font-size:.85em;margin-top:1mm}
+.doc h2.d-title{font-size:1.65em;margin:6mm 0 5mm;letter-spacing:.5px}
+.doc .r{margin:0 0 1.6mm;padding-left:1mm}
+.doc .st{font-size:1.05em;margin:7mm 0 3mm;padding-left:2.5mm;border-left-width:4px}
+.doc table{font-size:.93em;margin:2mm 0 1mm;line-height:1.4}
+.doc th,.doc td{padding:2.6mm 1.8mm}
+.doc .xm-tbl th,.doc .xm-tbl td{font-size:1em}
+.doc .ylines{margin:3mm 0}
+.doc .ylines .dotline{height:10mm}
+.doc .d-date{margin-top:8mm;font-size:1em}
+.doc .sign{margin-top:5mm}
+.doc .sign .col{font-size:1em}
+.doc .sign .gap{height:32mm}
+.doc .sign .gap img{max-height:32mm}
+.doc .xm-tbl th,.doc .xm-tbl td{padding:2.4mm 1.2mm}
+.doc .xm-tbl td:nth-child(2){min-width:36mm}
+.doc .xm-tbl th:last-child,.doc .xm-tbl td:last-child{min-width:16mm}

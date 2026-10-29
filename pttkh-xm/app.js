@@ -164,7 +164,7 @@
   }
 
   // ---------- font size ----------
-  let PDF_FONT = 12;
+  let PDF_FONT = 15;
   function applyFont() { document.documentElement.style.setProperty('--pdf-font', PDF_FONT + 'px'); $('font-val').textContent = PDF_FONT; }
 
   // ---------- PDF ----------
@@ -230,8 +230,8 @@
     $('btn-history').onclick = toggleHistory;
     $('btn-pdf').onclick = exportPDF;
     $('btn-font-dec').onclick = () => { PDF_FONT = Math.max(9, PDF_FONT - 1); applyFont(); };
-    $('btn-font-inc').onclick = () => { PDF_FONT = Math.min(16, PDF_FONT + 1); applyFont(); };
-    $('btn-font-reset').onclick = () => { PDF_FONT = 12; applyFont(); };
+    $('btn-font-inc').onclick = () => { PDF_FONT = Math.min(19, PDF_FONT + 1); applyFont(); };
+    $('btn-font-reset').onclick = () => { PDF_FONT = 15; applyFont(); };
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
