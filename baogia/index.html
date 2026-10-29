@@ -15,7 +15,7 @@
 
 
 <link rel="icon" href="assets/icon-192.png">
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="styles.css?v=57">
 </head>
 <body>
 
@@ -84,6 +84,12 @@
     <legend>Tùy chọn</legend>
     <label class="checkbox"><input type="checkbox" id="f-vat"> Có VAT</label>
   </fieldset>
+
+  <div class="stamp-ctrl no-print">
+    <span>Đóng trên PDF:</span>
+    <label><input type="checkbox" id="chk-sign" checked> ✍️ Chữ ký + tên</label>
+    <label><input type="checkbox" id="chk-stamp" checked> 🔴 Mộc (dấu treo)</label>
+  </div>
 
   <div class="fontsize-ctrl no-print">
     <span>Cỡ chữ PDF:</span>
@@ -251,6 +257,19 @@
 <script src="quotes-store.js"></script>
 <script src="quote-actions.js"></script>
 <script src="app.js"></script>
+<script>
+// Bật/tắt chữ ký + mộc (mặc định có). Ẩn bằng visibility để chừa đúng chỗ ký/đóng dấu sống.
+(function(){
+  var q=document.getElementById('quote'), K='mktt_bg_stampOpts';
+  var o={}; try{ o=JSON.parse(localStorage.getItem(K)||'{}'); }catch(e){}
+  [['chk-sign','no-sign','sign'],['chk-stamp','no-stamp','stamp']].forEach(function(a){
+    var c=document.getElementById(a[0]); if(!c) return;
+    if(o[a[2]]===false) c.checked=false;
+    var apply=function(){ q.classList.toggle(a[1], !c.checked); o[a[2]]=c.checked; try{ localStorage.setItem(K, JSON.stringify(o)); }catch(e){} };
+    c.addEventListener('change', apply); apply();
+  });
+})();
+</script>
 <script src="../shared/gemini-ocr.js"></script>
 <script>
   window.addEventListener('load', () => {
