@@ -87,15 +87,17 @@ body {
    luật @media (max-width:800px) bóp nhỏ --fs-* + logo + xếp header dọc → PDF ra chữ nhỏ,
    KHÁC bản in (dùng @media print cỡ desktop). Ép lại cỡ/bố cục desktop khi tạo PDF để
    PDF luôn giống hệt bản in, bất kể đang xem trên điện thoại hay máy tính. */
-#quote.pdf-mode {
+#quote.pdf-mode, #quote.measuring {
   --fs-body: 10.5pt;
   --fs-small: 9.5pt;
   --fs-section: 13pt;
   --fs-name: 13pt;
   --fs-title: 18pt;
 }
-#quote.pdf-mode .q-header { flex-direction: row; text-align: left; }
-#quote.pdf-mode .q-logo img { height: 70px; }
+#quote.pdf-mode .q-header, #quote.measuring .q-header { flex-direction: row; text-align: left; }
+#quote.pdf-mode .q-logo img, #quote.measuring .q-logo img { height: 70px; }
+/* khung đo = khung in/PDF: A4 rộng 210mm, lề 10/12mm */
+#quote.measuring { width: 210mm !important; max-width: none !important; min-height: 0 !important; padding: 10mm 12mm 12mm !important; }
 #quote.pdf-mode .r { color: #000 !important; }
 #quote.pdf-mode .q-table tr { page-break-inside: avoid; break-inside: avoid; }
 #quote.pdf-mode .q-signature { page-break-inside: avoid; break-inside: avoid; }
@@ -211,6 +213,23 @@ body {
 .hist-row .hist-dntt { background: #0a7d33; color: #fff; border-color: #0a7d33; font-weight: 600; }
 .hist-row .hist-dntt:active { background: #086128; }
 
+/* iPhone Safari tự phóng to chữ đoạn văn nhưng KHÔNG phóng chữ trong bảng
+   → bảng trông bé tí. Tắt tự phóng để mọi chữ đúng 1 cỡ. */
+html, body { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+/* Mỗi khối con nhận --fit của trang mình (trang 1 / trang 2) */
+:where(#quote) > * { font-size: calc(var(--fs-body) * var(--fit) * var(--uscale)); }
+/* Trang 2 bắt đầu từ phần Bơm */
+#quote .q-break { padding-top: 10mm; }
+@media print { #quote .q-break { page-break-before: always; break-before: page; } }
+#quote.pdf-mode .q-break { page-break-before: always; break-before: page; }
+@media screen { #quote:not(.pdf-mode):not(.measuring) .q-break { padding-top: 0; border-top: 1px dashed #bbb; margin-top: 8pt; } }
+/* Bảng: chữ cùng cỡ body, giãn dòng thoáng, cột số canh phải không xuống dòng */
+.q-table, .q-table th, .q-table td, .pump-notes li { line-height: 1.35; }
+.q-table td.num { white-space: nowrap; }
+.pump-notes { margin: 2pt 0; padding-left: 14pt; }
+.pump-notes li { margin: 2pt 0; }
+
 /* ================ PREVIEW A4 ================ */
 #quote {
   --fit: 1;
@@ -286,7 +305,7 @@ body {
 .pump-notes, .pump-notes li { font-size: calc(var(--fs-body) * var(--fit) * var(--uscale)); }
 .q-table th, .q-table td {
   border: 0.75pt solid #000;
-  padding: calc(3pt * var(--fit)) calc(4pt * var(--fit));
+  padding: calc(4pt * var(--fit)) calc(5pt * var(--fit));
   vertical-align: middle;
 }
 .q-table th {
@@ -322,7 +341,7 @@ body {
 /* Ảnh chữ ký ĐÃ cắt sát sẵn (signature-tight.png) → chiều cao DOM = chiều cao
    thật, không dùng trò phóng-to-rồi-crop nữa → in ra không đo nhầm, không nhảy trang. */
 .q-signature-img {
-  height: 130pt;
+  height: calc(100pt * var(--fit));
   width: auto;
   max-width: 100%;
 }
@@ -378,8 +397,8 @@ body {
 }
 
 /* ================ MOBILE ================ */
-@media (max-width: 800px) {
-  #quote {
+@media screen and (max-width: 800px) {
+  #quote:not(.pdf-mode):not(.measuring) {
     width: 100%;
     min-height: auto;
     padding: 12px;
@@ -392,8 +411,8 @@ body {
     --fs-name: 11.5pt;
     --fs-title: 16pt;
   }
-  .q-header { flex-direction: column; text-align: center; gap: 6px; }
-  .q-logo img { height: 60px; }
+  #quote:not(.pdf-mode):not(.measuring) .q-header { flex-direction: column; text-align: center; gap: 6px; }
+  #quote:not(.pdf-mode):not(.measuring) .q-logo img { height: 60px; }
 }
 
 /* Nut ve trang chu MKTT App */

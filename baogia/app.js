@@ -233,76 +233,52 @@
     fitToTwoPages();
   }
 
-  // Co/giãn font + margin theo biến --fit để báo giá lấp gần đầy 2 trang A4
-  // mà không tràn sang trang 3.
+  // Bố cục PDF CỐ ĐỊNH 2 trang A4, kết quả giống hệt nhau mỗi lần xuất:
+  //  - Trang 1: đầu công ty → bê tông → phụ gia → ghi chú
+  //  - Trang 2: bơm cần + bơm ngang → thanh toán → chữ ký
+  // Đo trong khung A4 chuẩn (class .measuring ép cỡ desktop, bỏ luật mobile),
+  // mỗi trang tự chọn cỡ chữ lớn nhất vừa 1 trang (sàn 0.85 để chữ không bé).
   function fitToTwoPages() {
     const quote = document.getElementById('quote');
     if (!quote) return;
     const pxPerMm = 96 / 25.4;
-    // @page margin: 8mm × (top+bottom) × 2 trang = 32mm bị trừ
-    // → vùng in lý thuyết = 594 - 32 = 562mm.
-    // Lùi sâu hơn (40mm) vì iOS Safari có thể ép margin tối thiểu lớn hơn
-    // và .q-signature là flex block không tách trang được → cần buffer
-    // đủ rộng để nguyên cục chữ ký lọt trang 2.
-    const maxPx = 520 * pxPerMm;
-    const targetPx = 510 * pxPerMm;
+    const maxPx = 268 * pxPerMm; // 297 − lề trên 10 − lề dưới 12 − dự phòng 7mm
 
-    // Tạm ép #quote về đúng kích thước A4 (210mm) khi đo, để scrollHeight
-    // khớp với layout in. Nếu không, trên mobile #quote bị CSS responsive
-    // co còn width viewport (~375px), content wrap dài gấp đôi → fit sai.
-    const prevMin = quote.style.minHeight;
-    const prevWidth = quote.style.width;
-    const prevMaxW = quote.style.maxWidth;
-    const prevPad = quote.style.padding;
-    const prevFontSize = quote.style.fontSize;
-    quote.style.minHeight = '0';
-    quote.style.width = '210mm';
-    quote.style.maxWidth = '210mm';
-    quote.style.padding = '15mm';
-    quote.style.fontSize = 'calc(var(--fs-body) * var(--fit) * var(--uscale))';
-    // Đo bằng CỠ CHỮ DESKTOP (cỡ mà bản in & PDF thực sự dùng). Nếu không, trên
-    // điện thoại luật @media(max-width:800px) bóp --fs-* nhỏ lại → --fit đo ra bị
-    // lớn quá, khi in/PDF cỡ desktop to hơn sẽ tràn sang trang 3. Gỡ sau khi đo.
-    quote.style.setProperty('--fs-body', '10.5pt');
-    quote.style.setProperty('--fs-small', '9.5pt');
-    quote.style.setProperty('--fs-section', '13pt');
-    quote.style.setProperty('--fs-name', '13pt');
-    quote.style.setProperty('--fs-title', '18pt');
-    // Đo cỡ auto ở uscale=1 để --uscale là hệ số nhân THẬT (không bị auto-fit
-    // triệt tiêu). Khôi phục hệ số user sau khi đo xong.
+    const brk = document.getElementById('q-pump-block');
+    quote.querySelectorAll('.q-break').forEach((el) => el.classList.remove('q-break'));
+    // Không báo giá bơm → trang 2 bắt đầu từ Hình thức thanh toán.
+    const pay = document.getElementById('q-pay-heading');
+    if (brk && getComputedStyle(brk).display !== 'none') brk.classList.add('q-break');
+    else if (pay) pay.classList.add('q-break');
+    const breakEl = quote.querySelector('.q-break');
+
+    quote.classList.add('measuring');
     quote.style.setProperty('--uscale', '1');
-
-    // Bracket scale trong [0.45, 1.40]. Sàn 0.45 đủ co cho ≥3 mác bê tông
-    // vẫn vừa 2 trang. Init best = lo để worst-case dùng scale nhỏ nhất,
-    // tránh fallback về 1 gây tràn trang 3.
-    let lo = 0.45, hi = 1.40, best = lo;
-    for (let i = 0; i < 20; i++) {
-      const mid = (lo + hi) / 2;
-      quote.style.setProperty('--fit', mid.toFixed(3));
-      const h = quote.scrollHeight;
-      if (h <= maxPx) {
-        best = mid;
-        if (h >= targetPx) break; // đủ lấp đầy, dừng
-        lo = mid;
-      } else {
-        hi = mid;
+    const kids = Array.from(quote.children).filter((el) => !el.classList.contains('q-hanging-stamp'));
+    const bi = breakEl ? kids.indexOf(breakEl) : kids.length;
+    const p1 = kids.slice(0, bi), p2 = kids.slice(bi);
+    const setFit = (els, f) => els.forEach((el) => el.style.setProperty('--fit', f.toFixed(3)));
+    const qTop = () => quote.getBoundingClientRect().top;
+    // padding-top 10mm của #quote nằm trong trang 1; trang 2 có padding riêng của .q-break
+    const splitTop = () => (breakEl ? breakEl.getBoundingClientRect().top : quote.getBoundingClientRect().bottom) - qTop() - 10 * pxPerMm;
+    const page2H = () => quote.scrollHeight - (breakEl.getBoundingClientRect().top - qTop()) - 12 * pxPerMm;
+    const solve = (els, measure) => {
+      let lo = 0.85, hi = 1.25, best = lo;
+      setFit(els, hi);
+      if (measure() <= maxPx) return;
+      for (let k = 0; k < 14; k++) {
+        const mid = (lo + hi) / 2;
+        setFit(els, mid);
+        if (measure() <= maxPx) { best = mid; lo = mid; } else { hi = mid; }
       }
-    }
-    quote.style.setProperty('--fit', best.toFixed(3));
-
-    // Khôi phục style để CSS responsive tiếp quản trên mobile
-    quote.style.minHeight = prevMin;
-    quote.style.width = prevWidth;
-    quote.style.maxWidth = prevMaxW;
-    quote.style.padding = prevPad;
-    quote.style.fontSize = prevFontSize;
-    // Gỡ cỡ chữ desktop đã ép khi đo → trả lại cho CSS (mobile/desktop) quyết định.
-    quote.style.removeProperty('--fs-body');
-    quote.style.removeProperty('--fs-small');
-    quote.style.removeProperty('--fs-section');
-    quote.style.removeProperty('--fs-name');
-    quote.style.removeProperty('--fs-title');
-    applyUscale(getUscale()); // trả lại hệ số cỡ chữ do user chọn
+      setFit(els, best);
+    };
+    // MỘT cỡ chữ chung cho cả 2 trang (đồng nhất), lấy cỡ lớn nhất mà cả 2 trang đều vừa.
+    const all = p1.concat(p2);
+    quote.style.setProperty('--fit', '1');
+    solve(all, () => Math.max(splitTop(), breakEl ? page2H() : 0));
+    quote.classList.remove('measuring');
+    applyUscale(getUscale()); // trả lại hệ số cỡ chữ do user chọn (A-/A+)
   }
 
   // ---------- VAT ----------
@@ -666,6 +642,7 @@
         padding: q.style.padding, width: q.style.width, maxWidth: q.style.maxWidth };
       q.style.transform = 'none'; q.style.margin = '0'; q.style.boxShadow = 'none';
       q.style.padding = '10mm 12mm 12mm'; q.style.width = '210mm'; q.style.maxWidth = 'none';
+      fitToTwoPages(); // tính lại cỡ chữ ngay trước khi chụp → mỗi lần xuất đều như nhau
       q.classList.add('pdf-mode'); // ép giá đỏ→đen + giữ page-break (html2pdf bỏ qua @media print)
 
       // Đợi ảnh (logo/dấu/chữ ký) tải xong, nếu không html2canvas ra trang trắng.
@@ -693,7 +670,9 @@
         margin: 0, filename,
         image: { type: 'jpeg', quality: 0.95 },
         html2canvas: { scale, useCORS: true, backgroundColor: '#ffffff', scrollX: 0, scrollY: 0,
-          windowWidth: q.scrollWidth, windowHeight: q.scrollHeight },
+          windowWidth: window.innerWidth, windowHeight: q.scrollHeight },
+        // windowWidth PHẢI = bề rộng cửa sổ thật: html2pdf canh giữa bản chụp theo cửa sổ,
+        // lệch giá trị này là PDF bị cắt mất một bên (lỗi 'mỗi lần xuất một kiểu').
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true },
         pagebreak: { mode: ['css', 'legacy'] },
       };
