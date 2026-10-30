@@ -26,7 +26,7 @@ QUY TẮC BẮT BUỘC:
 QUY TẮC:
 - BỎ QUA chữ trong thẻ bản đồ/Google Maps nhúng; chỉ đọc nội dung người dùng gõ/viết.
 - customer = tên công ty khách (viết HOA đầy đủ). project = tên/địa chỉ công trình.
-- rows = từng dòng cấp bê tông: ngay_cap (dd/mm/yyyy), mac (VD M300/14), kl (khối lượng m³, thập phân dùng dấu chấm), dg (đơn giá VNĐ/m³ số nguyên), pt (phụ thu tổng VNĐ số nguyên, không có → "0").
+- rows = từng dòng cấp bê tông: ngay_cap (dd/mm/yyyy — NẾU nội dung KHÔNG ghi năm thì CHỈ trả "dd/mm", TUYỆT ĐỐI không tự đoán năm), mac (VD M300/14), kl (khối lượng m³, thập phân dùng dấu chấm), dg (đơn giá VNĐ/m³ số nguyên), pt (phụ thu tổng VNĐ số nguyên, không có → "0").
 - Không có bảng công nợ chi tiết → rows = []. Mọi số tiền là số nguyên, bỏ đơn vị/ngăn cách nghìn. Không bịa.`,
 
     pttkh: `Bạn trích xuất THÔNG TIN KHÁCH HÀNG từ ảnh chụp (name card / danh thiếp, giấy phép kinh doanh, hợp đồng, con dấu công ty, screenshot Zalo...) và/hoặc text khách gửi. Dùng để điền Phiếu thông tin khách hàng ngành bê tông.

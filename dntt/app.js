@@ -349,10 +349,25 @@
   }
 
   // ---------- API cho OCR: nạp rows tự động ----------
+  // Ngày do AI đọc: nếu thiếu năm (dd/mm) hoặc năm bị AI đoán bậy
+  // (không phải năm nay / năm ngoái) → tự điền năm hiện tại.
+  function fixYear(s) {
+    const str = String(s || '').trim();
+    if (!str) return formatToday();
+    const m = str.match(/^(\d{1,2})[\/.\-](\d{1,2})(?:[\/.\-](\d{2,4}))?$/);
+    if (!m) return str;
+    const now = new Date().getFullYear();
+    let y = m[3] ? parseInt(m[3], 10) : NaN;
+    if (!isNaN(y) && y < 100) y += 2000;
+    if (isNaN(y) || (y !== now && y !== now - 1)) y = now;
+    const p = (n) => String(n).padStart(2, '0');
+    return p(m[1]) + '/' + p(m[2]) + '/' + y;
+  }
+
   window.__dnttSetRows = function (arr) {
     if (!Array.isArray(arr) || !arr.length) return;
     rows = arr.slice(0, MAX_ROWS).map((r) => ({
-      ngay_cap: r.ngay_cap || formatToday(),
+      ngay_cap: fixYear(r.ngay_cap),
       mac: r.mac || '',
       kl: String(r.kl || ''),
       dg: String(r.dg || ''),
