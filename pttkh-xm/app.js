@@ -196,14 +196,20 @@
     const jsPDFopt = { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true };
     const pages = [...q.querySelectorAll('.pg')];
     try {
+      // Luôn đúng 1 trang PDF cho mỗi trang phiếu (tổng 2 trang): chụp từng trang thành ảnh,
+      // nếu ảnh cao hơn khổ A4 (chữ to / tên XM dài làm phiếu dài ra) thì thu nhỏ cho vừa 1 trang, căn giữa.
       const pdf = await html2pdf().set({ margin: 0, image: { type: 'jpeg', quality: 0.95 }, html2canvas: canvasOpt, jsPDF: jsPDFopt, pagebreak: { mode: ['css'] } }).from(pages[0]).toPdf().get('pdf');
-      // html2pdf đôi khi đẻ thêm 1 trang trắng sau trang 1 → giữ đúng 1 trang
-      // chỉ xoá khi nội dung trang 1 thật sự vừa 1 trang A4 (≈1123px) — tránh cắt mất nội dung khi chữ to/bảng dài
-      if (pages[0].scrollHeight <= 1125) while (pdf.getNumberOfPages() > 1) pdf.deletePage(pdf.getNumberOfPages());
-      for (let i = 1; i < pages.length; i++) {
+      while (pdf.getNumberOfPages() > 1) pdf.deletePage(pdf.getNumberOfPages());
+      const place = (c) => {
+        let w = 210, h = 210 * c.height / c.width;
+        if (h > 297) { w = 210 * 297 / h; h = 297; }
+        pdf.addImage(c.toDataURL('image/jpeg', 0.95), 'JPEG', (210 - w) / 2, 0, w, h, undefined, 'FAST');
+      };
+      for (let i = 0; i < pages.length; i++) {
         const c = await html2pdf().set({ html2canvas: canvasOpt }).from(pages[i]).toCanvas().get('canvas');
-        let h = 210 * c.height / c.width; if (h > 297) h = 297;
-        pdf.addPage(); pdf.addImage(c.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, 210, h, undefined, 'FAST');
+        if (i === 0) { pdf.setPage(1); pdf.setFillColor(255, 255, 255); pdf.rect(0, 0, 210, 297, 'F'); }
+        else pdf.addPage();
+        place(c);
       }
       pdf.save(filename);
     }
