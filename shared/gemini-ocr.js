@@ -8,7 +8,17 @@
   const DEFAULT_KEY = ['AQ.', 'Ab8RN6IDuQ', 'HaTDSnKEra', 'he4OsNY-yO6', 'ZtDvccvXbf', 'n3hFM-uWw'].join('');
   // Chuỗi model dự phòng: thử lần lượt khi model trước bị quá tải/lỗi tạm thời.
   // gemini-flash-latest là alias luôn trỏ tới bản flash hiện hành → chống khai tử.
-  const MODELS = ['gemini-3.6-flash', 'gemini-flash-latest', 'gemini-flash-lite-latest'];
+  // think = mức "suy nghĩ": mặc định model nghĩ mức medium → chậm gấp ~3 lần mà đọc form không cần.
+  // Đo 11/11/2026: 3.6-flash mặc định 8.4s → minimal 2.8s, kết quả y hệt. flash-latest KHÔNG nhận minimal → low.
+  const MODELS = [
+    { name: 'gemini-3.6-flash', think: 'minimal' },
+    { name: 'gemini-flash-latest', think: 'low' },
+    { name: 'gemini-flash-lite-latest', think: 'minimal' }
+  ];
+  const CALL_TIMEOUT_MS = 25000;   // 1 model treo quá 25s → bỏ hẳn
+  const HEDGE_MS = 6000;           // model đang chạy quá 6s chưa xong → bật thêm model kế chạy SONG SONG, ai xong trước lấy
+  const IMG_MAX_SIDE = 1600;       // ảnh iPhone 4032px → thu còn 1600px: upload nhẹ ~10 lần, vẫn đọc rõ chữ
+  const IMG_QUALITY = 0.85;
   const ENDPOINT = (model, key) =>
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key)}`;
 
@@ -138,19 +148,54 @@ QUY TẮC BẮT BUỘC:
     });
   }
 
+  // Thu nhỏ + nén JPEG trên máy trước khi gửi (ảnh nhỏ sẵn thì giữ nguyên).
+  function compressImage(file) {
+    return new Promise((resolve) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const w = img.naturalWidth, h = img.naturalHeight;
+          const scale = Math.min(1, IMG_MAX_SIDE / Math.max(w, h));
+          if (scale === 1 && file.size < 500 * 1024) { URL.revokeObjectURL(url); return resolve(fileToBase64(file)); }
+          const c = document.createElement('canvas');
+          c.width = Math.round(w * scale); c.height = Math.round(h * scale);
+          const ctx = c.getContext('2d');
+          ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height); // PNG nền trong → trắng
+          ctx.drawImage(img, 0, 0, c.width, c.height);
+          const d = c.toDataURL('image/jpeg', IMG_QUALITY);
+          URL.revokeObjectURL(url);
+          resolve({ data: d.slice(d.indexOf(',') + 1), mime: 'image/jpeg' });
+        } catch (e) { URL.revokeObjectURL(url); resolve(fileToBase64(file)); }
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); resolve(fileToBase64(file)); };
+      img.src = url;
+    });
+  }
+
+  // Mở sẵn kết nối tới Google ngay khi trang tải → lần đọc đầu đỡ mất thời gian bắt tay TLS.
+  function preconnect() {
+    if (document.querySelector('link[data-ocr-preconnect]')) return;
+    const l = document.createElement('link');
+    l.rel = 'preconnect'; l.href = 'https://generativelanguage.googleapis.com'; l.crossOrigin = '';
+    l.setAttribute('data-ocr-preconnect', '1');
+    document.head.appendChild(l);
+  }
+
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   // Lỗi tạm thời (quá tải / rate limit) → thử lại cùng model.
   const isTransient = (status, msg) =>
     status === 429 || status === 500 || status === 503 ||
     /high demand|overload|unavailable|try again|rate limit|quota/i.test(msg || '');
   // Lỗi chết người (sai key / hết quyền) → dừng hẳn, đổi model cũng vô ích (cùng 1 key).
+  // (400 khác — VD "Unable to process input image" — hay chập chờn phía Google → sang model kế, không dừng.)
   const isFatal = (status, msg) =>
-    status === 400 || status === 401 || status === 403 ||
-    /api[_ ]?key|permission|invalid argument|api_key_invalid|forbidden/i.test(msg || '');
+    status === 401 || status === 403 ||
+    /api[_ ]?key|permission denied|api_key_invalid|forbidden/i.test(msg || '');
 
   // Gọi 1 model, tự parse JSON. Ném lỗi có .transient / .fatal để loop xử lý.
   // input = { imgB64?, mime?, text? } — cho phép ảnh, text, hoặc CẢ HAI cùng lúc.
-  async function callOnce(model, key, prompt, schema, input) {
+  async function callOnce(model, key, prompt, schema, input, think, extSignal) {
     const parts = [{ text: prompt }];
     if (input.text && input.text.trim())
       parts.push({ text: 'NỘI DUNG KHÁCH GỬI (text):\n' + input.text.trim() });
@@ -158,15 +203,28 @@ QUY TẮC BẮT BUỘC:
       parts.push({ inline_data: { mime_type: input.mime || 'image/png', data: input.imgB64 } });
     const gc = { temperature: 0, responseMimeType: 'application/json' };
     if (schema) gc.responseSchema = schema;
+    if (think) gc.thinkingConfig = { thinkingLevel: think };
     const body = { contents: [{ parts }], generationConfig: gc };
-    const r = await fetch(ENDPOINT(model, key), {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-    const j = await r.json();
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), CALL_TIMEOUT_MS);
+    if (extSignal) { if (extSignal.aborted) ctl.abort(); else extSignal.addEventListener('abort', () => ctl.abort()); }
+    let r, j;
+    try {
+      r = await fetch(ENDPOINT(model, key), {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body), signal: ctl.signal
+      });
+      j = await r.json();
+    } catch (err) {
+      const e = new Error(err && err.name === 'AbortError' ? 'Quá ' + (CALL_TIMEOUT_MS / 1000) + 's không phản hồi' : ('Mất mạng? ' + (err.message || err)));
+      e.transient = true;
+      throw e;
+    } finally { clearTimeout(timer); }
     if (!r.ok) {
       const msg = (j && j.error && j.error.message) || ('HTTP ' + r.status);
       const e = new Error(msg);
+      // Model không nhận mức thinking → không phải lỗi key, gọi lại không kèm thinkingConfig.
+      if (think && /thinking/i.test(msg)) { e.badThink = true; throw e; }
       e.fatal = isFatal(r.status, msg);
       e.transient = !e.fatal && isTransient(r.status, msg);
       throw e;
@@ -178,29 +236,46 @@ QUY TẮC BẮT BUỘC:
     catch (e) { throw new Error('Không parse được JSON: ' + clean.slice(0, 120)); }
   }
 
-  // Thử lần lượt các model; mỗi model retry 2 lần với backoff khi lỗi tạm thời.
-  // onProgress(text) để cập nhật trạng thái cho người dùng thấy đang thử lại.
+  // 1 model (tự gọi lại không kèm thinkingConfig nếu model không nhận mức thinking đó).
+  async function callModel(m, key, prompt, schema, input, signal) {
+    try { return await callOnce(m.name, key, prompt, schema, input, m.think, signal); }
+    catch (e) { if (!e.badThink) throw e; return await callOnce(m.name, key, prompt, schema, input, null, signal); }
+  }
+
+  // "Đua" các model: chạy model 1; lỗi → bật NGAY model kế; quá HEDGE_MS chưa xong → bật thêm model kế chạy song song.
+  // Cái nào trả kết quả trước thì lấy, huỷ các cái còn lại.
+  function raceModels(key, prompt, schema, input, onProgress) {
+    return new Promise((resolve, reject) => {
+      let next = 0, pending = 0, done = false, lastErr = null, hedge = null;
+      const ctls = [];
+      const finish = () => { done = true; clearTimeout(hedge); ctls.forEach((c) => c.abort()); };
+      const launch = () => {
+        if (done || next >= MODELS.length) return;
+        const mi = next++, ctl = new AbortController();
+        ctls.push(ctl); pending++;
+        if (mi > 0 && onProgress) onProgress(`⏳ Google chậm, chạy thêm model dự phòng ${mi + 1}/${MODELS.length}`);
+        clearTimeout(hedge); hedge = setTimeout(launch, HEDGE_MS);
+        callModel(MODELS[mi], key, prompt, schema, input, ctl.signal).then(
+          (r) => { if (done) return; finish(); resolve(r); },
+          (e) => {
+            pending--; if (done) return; lastErr = e;
+            if (e.fatal) { finish(); return reject(e); }   // sai key / hết quyền → dừng hẳn
+            if (next < MODELS.length) launch();
+            else if (pending === 0) { finish(); reject(lastErr); }
+          });
+      };
+      launch();
+    });
+  }
+
   async function callGemini(key, prompt, schema, input, onProgress) {
-    let lastErr;
-    for (let mi = 0; mi < MODELS.length; mi++) {
-      const model = MODELS[mi];
-      for (let attempt = 1; attempt <= 2; attempt++) {
-        try {
-          if (onProgress && (mi > 0 || attempt > 1))
-            onProgress(`⏳ Google đang bận, thử lại (model ${mi + 1}/${MODELS.length}, lần ${attempt})...`);
-          return await callOnce(model, key, prompt, schema, input);
-        } catch (e) {
-          lastErr = e;
-          if (e.fatal) throw e;                // sai key / hết quyền → đổi model vô ích, dừng hẳn
-          if (e.transient && attempt < 2) {    // quá tải → backoff rồi thử LẠI cùng model
-            await sleep(attempt === 1 ? 1200 : 2500);
-            continue;
-          }
-          break;                               // hết retry hoặc lỗi riêng model (404...) → sang model kế
-        }
-      }
+    try { return await raceModels(key, prompt, schema, input, onProgress); }
+    catch (e) {
+      if (e.fatal) throw e;
+      if (onProgress) onProgress('⏳ Google đang bận, chờ chút rồi thử lại');
+      await sleep(1500);
+      return await raceModels(key, prompt, schema, input, onProgress);
     }
-    throw lastErr || new Error('Không gọi được Gemini');
   }
 
   // ---------- Key setup dialog ----------
@@ -246,7 +321,7 @@ QUY TẮC BẮT BUỘC:
     mask.innerHTML = `
       <div class="ocr-dlg" role="dialog" aria-modal="true">
         <h3>📷 Đọc ảnh tự động</h3>
-        <p class="hint">Chọn ảnh (screenshot Zalo, Word, giấy...) <b>HOẶC</b> dán/gõ text — AI sẽ đọc và tự điền vào form.</p>
+        <p class="hint">Chọn hoặc dán ảnh (screenshot Zalo, Word, giấy...) là <b>tự đọc luôn</b>. Chỉ có text thì gõ/dán rồi bấm <b>Đọc &amp; điền</b>.</p>
         <label class="ocr-drop" id="ocr-drop">
           <input type="file" accept="image/*" id="ocr-file">
           <div><b>📎 Chọn ảnh</b> hoặc kéo thả vào đây</div>
@@ -271,6 +346,9 @@ QUY TẮC BẮT BUỘC:
     const btnRead = mask.querySelector('[data-act="read"]');
     const textEl = mask.querySelector('#ocr-text');
     let currentFile = null;
+    let imgPromise = null;     // nén ảnh chạy nền ngay khi chọn ảnh
+    let busy = false;
+    let autoTimer = null;
 
     function setStatus(txt, cls) {
       if (!txt) { statusEl.hidden = true; return; }
@@ -280,16 +358,21 @@ QUY TẮC BẮT BUỘC:
     // Bật nút "Đọc & điền" khi có ảnh HOẶC có text.
     function refreshReadBtn() {
       const hasText = !!(textEl.value && textEl.value.trim());
-      btnRead.disabled = !currentFile && !hasText;
+      btnRead.disabled = busy || (!currentFile && !hasText);
     }
     textEl.addEventListener('input', refreshReadBtn);
     function acceptFile(f) {
       if (!f || !f.type.startsWith('image/')) return;
+      if (busy) return;
       currentFile = f;
+      imgPromise = compressImage(f);
       const url = URL.createObjectURL(f);
       previewWrap.innerHTML = `<img class="ocr-preview" src="${url}" alt="preview">`;
       refreshReadBtn();
       setStatus('');
+      // Có ảnh là TỰ ĐỌC luôn — khỏi bấm nút. (Text gõ kèm, nếu có, được gửi cùng.)
+      clearTimeout(autoTimer);
+      autoTimer = setTimeout(doRead, 250);
     }
     fileInp.addEventListener('change', () => acceptFile(fileInp.files[0]));
     ['dragover','dragenter'].forEach(ev => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add('hover'); }));
@@ -339,27 +422,37 @@ QUY TẮC BẮT BUỘC:
         const k = await openKeyDialog();
         if (k) key = k;
       }
-      if (act === 'read') {
-        const text = (textEl.value || '').trim();
-        if (!currentFile && !text) return;
-        btnRead.disabled = true;
-        setStatus('⏳ Đang đọc & phân tích...', 'load');
-        try {
-          const input = { text };
-          if (currentFile) {
-            const { data, mime } = await fileToBase64(currentFile);
-            input.imgB64 = data; input.mime = mime;
-          }
-          const result = await callGemini(key, PROMPTS[module], SCHEMAS[module], input, (t) => setStatus(t, 'load'));
-          setStatus('✅ Đọc xong! Đang điền vào form...', 'ok');
-          try { onResult(result); } catch (err) { console.error(err); }
-          setTimeout(close, 600);
-        } catch (err) {
-          setStatus('❌ Lỗi: ' + (err.message || err), 'err');
-          refreshReadBtn();
-        }
-      }
+      if (act === 'read') doRead();
     });
+
+    async function doRead() {
+      clearTimeout(autoTimer);
+      const text = (textEl.value || '').trim();
+      if (busy || (!currentFile && !text)) return;
+      busy = true; refreshReadBtn();
+      const t0 = Date.now();
+      let msg = '⏳ Đang đọc & phân tích';
+      const tick = () => setStatus(msg + '... ' + Math.floor((Date.now() - t0) / 1000) + 's', 'load');
+      tick();
+      const iv = setInterval(tick, 500);
+      try {
+        const input = { text };
+        if (currentFile) {
+          const { data, mime } = await (imgPromise || compressImage(currentFile));
+          input.imgB64 = data; input.mime = mime;
+        }
+        const result = await callGemini(key, PROMPTS[module], SCHEMAS[module], input, (t) => { msg = t.replace(/\.+$/, ''); tick(); });
+        clearInterval(iv);
+        setStatus('✅ Đọc xong sau ' + ((Date.now() - t0) / 1000).toFixed(1) + 's — đã điền vào form', 'ok');
+        try { onResult(result); } catch (err) { console.error(err); }
+        setTimeout(close, 500);
+      } catch (err) {
+        clearInterval(iv);
+        setStatus('❌ Lỗi: ' + (err.message || err), 'err');
+      } finally {
+        busy = false; refreshReadBtn();
+      }
+    }
 
     function close() {
       document.removeEventListener('paste', onPaste);
@@ -370,6 +463,7 @@ QUY TẮC BẮT BUỘC:
   // ---------- public API: mount button ----------
   function mount({ containerId, module, onResult }) {
     injectCSS();
+    preconnect();
     const container = document.getElementById(containerId);
     if (!container) return;
     const btn = document.createElement('button');
