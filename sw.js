@@ -1,5 +1,5 @@
 // MKTT App service worker — cache launcher + module Báo Giá + ĐNTT + Phiếu KH (offline).
-const VERSION = 'v66'
+const VERSION = 'v67'
 const CACHE = 'mktt-app-' + VERSION;
 
 const ASSETS = [
@@ -39,6 +39,9 @@ const ASSETS = [
   'pttkh/index.html',
   'pttkh/styles.css',
   'pttkh/app.js',
+  'pttkh/bulk-parse.js',
+  'pttkh/assets/logo-phieu.jpg',
+  'pttkh/assets/footer-banner.png',
   'pttkh/assets/logo.png',
   'pttkh/assets/sign-dat.png',
   'pttkh/assets/stamp-treo.png',
