@@ -47,7 +47,17 @@ QUY TẮC BẮT BUỘC:
 4. mst = mã số thuế (chỉ chữ số, bỏ khoảng trắng/dấu gạch).
 5. nguoi_dd = người đại diện pháp luật (giám đốc / chủ hộ) nếu có.
 6. nguoi_lh = người liên hệ trực tiếp và/hoặc số điện thoại liên hệ.
-7. TUYỆT ĐỐI không bịa. Không chắc thì để chuỗi rỗng.`
+7. TUYỆT ĐỐI không bịa. Không chắc thì để chuỗi rỗng.`,
+
+    pttkh_list: `Bạn đọc DANH SÁCH KHÁCH HÀNG kèm ĐƠN GIÁ BÊ TÔNG từ ảnh chụp (bảng Excel, sổ tay viết tay, tin nhắn Zalo, giấy in) và/hoặc text, để làm Phiếu thông tin khách hàng cho từng khách.
+QUY TẮC BẮT BUỘC:
+1. Mỗi dòng khách = 1 phần tử trong rows. Bỏ dòng tiêu đề, dòng tổng cộng, chữ ký.
+2. kh = tên khách hàng / công ty đúng như ghi (viết HOA). Một khách có nhiều mác thì mỗi mác 1 phần tử, lặp lại kh.
+3. cong_trinh = tên/địa chỉ công trình nếu có, không có để rỗng.
+4. mac = mác bê tông nếu có (VD M250, M300, M250 R28 S10), không có để rỗng.
+5. cn = ĐƠN GIÁ CÔNG NỢ (VNĐ/m³), hd = ĐƠN GIÁ XUẤT HOÁ ĐƠN (VNĐ/m³). Bỏ dấu chấm/phẩy ngăn nghìn, chỉ giữ chữ số đúng như ghi: 1.250.000 thành 1250000, 1.320 thành 1320, 1tr2 thành 1200000. Bảng có 2 cột giá: cột đầu là công nợ, cột sau là xuất hoá đơn (trừ khi tiêu đề ghi khác). Chỉ có 1 cột giá thì đưa vào cn.
+6. gc = ghi chú của dòng đó nếu có (VD "Thu VAT 25%", "gửi giá 50k"), không có để rỗng.
+7. TUYỆT ĐỐI không bịa, không tự tính. Không chắc thì để chuỗi rỗng.`
   };
 
   // Schema ép cấu trúc JSON (controlled generation) — chính xác & type-safe hơn free-text.
@@ -90,6 +100,28 @@ QUY TẮC BẮT BUỘC:
         nguoi_lh: { type: 'STRING' }
       },
       required: ['kh']
+    },
+    pttkh_list: {
+      type: 'OBJECT',
+      properties: {
+        rows: {
+          type: 'ARRAY',
+          items: {
+            type: 'OBJECT',
+            properties: {
+              kh: { type: 'STRING', description: 'Tên khách hàng / công ty, viết HOA' },
+              cong_trinh: { type: 'STRING', description: 'Công trình, không có thì rỗng' },
+              mac: { type: 'STRING', description: 'Mác bê tông ngắn gọn, VD M300; không có thì rỗng' },
+              cn: { type: 'STRING', description: 'Đơn giá công nợ, chỉ chữ số' },
+              hd: { type: 'STRING', description: 'Đơn giá xuất hoá đơn, chỉ chữ số' },
+              gc: { type: 'STRING', description: 'Ghi chú của dòng, không có thì rỗng' }
+            },
+            required: ['kh', 'cong_trinh', 'mac', 'cn', 'hd', 'gc'],
+            propertyOrdering: ['kh', 'cong_trinh', 'mac', 'cn', 'hd', 'gc']
+          }
+        }
+      },
+      required: ['rows']
     }
   };
 
@@ -473,5 +505,8 @@ QUY TẮC BẮT BUỘC:
     container.appendChild(btn);
   }
 
-  window.MkttOCR = { mount, openKeyDialog };
+  // mở hộp đọc ảnh từ nút riêng của module (VD: Phiếu KH > Nhập nhiều khách)
+  function open(module, onResult) { injectCSS(); preconnect(); return openOCRDialog(module, onResult); }
+
+  window.MkttOCR = { mount, open, openKeyDialog };
 })();
