@@ -48,43 +48,91 @@ label.checkbox input{width:auto;margin:0}
 .btn-primary.pdf-busy{opacity:.7}
 .pdf-hint{font-size:11.5px;color:#8a5;color:#8a7;text-align:center;margin:8px 4px 0;line-height:1.4}
 
-/* ===== A4 preview ===== */
+/* ===== Nhập nhiều khách (tạo phiếu hàng loạt) ===== */
+#bulk{border:1px solid #cfe3d5;border-radius:14px;background:#fff;margin:0 0 14px;padding:0}
+#bulk>summary{list-style:none;cursor:pointer;padding:12px;font-weight:750;color:var(--g);font-size:14px;display:flex;align-items:center;gap:8px}
+#bulk>summary::-webkit-details-marker{display:none}
+#bulk>summary::after{content:"▾";margin-left:auto;color:#8a9}
+#bulk[open]>summary::after{content:"▴"}
+#bulk .bulk-in{padding:0 12px 12px}
+#bulk .hint{font-size:12px;color:#567;line-height:1.45;margin:0 0 8px;background:#f5faf6;border-radius:9px;padding:8px 10px}
+#bulk .hint code{background:#e6f1e9;border-radius:4px;padding:1px 4px;font-size:11.5px}
+#bulk textarea{min-height:92px;font-size:14px}
+.bulk-btns{display:flex;gap:7px;flex-wrap:wrap;margin:8px 0}
+.bulk-btns button{flex:1;min-width:120px;padding:10px;border:1px solid var(--line);background:#fff;color:#345;border-radius:10px;
+  font-size:13px;font-weight:650;font-family:inherit;cursor:pointer}
+.bulk-btns .b-green{background:#eef7f0;border-color:#9cc9ac;color:var(--g)}
+.bulk-msg{font-size:12.5px;margin:4px 0 8px;color:#0a7d33}
+.bulk-msg.err{color:#b33}
+.btbl{min-width:600px}
+.btbl td.stt{color:#789;font-size:11px;width:28px}
+#btn-bulk-add{margin-top:7px;background:#eef7f0;border:1px dashed #9cc9ac;color:var(--g);border-radius:9px;padding:8px 12px;
+  font-size:12.5px;font-weight:650;font-family:inherit;cursor:pointer}
+#btn-bulk-pdf{margin-top:10px}
+.bulk-note{font-size:11.5px;color:#789;margin:8px 2px 0;line-height:1.45}
+
+/* ===== A4 preview — dựng theo đúng file Word "Phiếu thông tin khách hàng" =====
+   Đơn vị pt (1pt = 1/72 inch) như Word. A4 = 595.3 x 841.9pt.
+   Lề Word: trên 36pt, phải 39.7pt, dưới 34pt, trái 42.5pt. Chữ Times New Roman 12pt. */
 #preview-wrap{--pv-scale:1;margin:16px auto 0;max-width:620px;overflow:auto}
-.doc{background:transparent;color:#000;width:210mm;margin:0 auto;
-  transform:scale(var(--pv-scale));transform-origin:top center;
-  font-family:"Times New Roman",Times,serif;font-size:var(--pdf-font);line-height:1.4}
-.doc .pg{background:#fff;width:210mm;min-height:297mm;padding:12mm;box-shadow:0 6px 24px rgba(0,0,0,.16)}
-.doc .pg + .pg{margin-top:14px;page-break-before:always;break-before:page}
-.doc.pdf-exporting .pg + .pg{margin-top:0}
-.doc table,.doc tr,.doc thead,.doc .sign{page-break-inside:avoid;break-inside:avoid}
+.doc{color:#000;width:595.3pt;margin:0 auto;transform:scale(var(--pv-scale));transform-origin:top center;
+  font-family:"Times New Roman",Times,"Liberation Serif",Tinos,serif;font-size:12pt;line-height:13.8pt;
+  -webkit-text-size-adjust:none;text-size-adjust:none}
+.pg.doc{transform:none;margin:0;width:595.3pt}
+.pg{position:relative;background:#fff;width:595.3pt;min-height:841.9pt;padding:36pt 39.7pt 54pt 42.5pt;
+  box-sizing:border-box;box-shadow:0 6px 24px rgba(0,0,0,.16);overflow:hidden}
+.pg + .pg{margin-top:14px;page-break-before:always;break-before:page}
+.pdf-exporting .pg{box-shadow:none}
+.pdf-exporting .pg + .pg{margin-top:0}
 @media(max-width:640px){ #preview-wrap{--pv-scale:.62} .doc{margin-bottom:calc(-2 * 297mm * .38)} }
-.doc .d-head{display:flex;align-items:center;gap:10px;border-bottom:2px solid #0a7d33;padding-bottom:6px;margin-bottom:6px}
-.doc .d-head img{width:52px;height:52px;object-fit:contain}
-.doc .d-head .co{font-weight:bold;font-size:13px;color:#0a7d33;line-height:1.25}
-.doc h2.d-title{text-align:center;font-size:18px;margin:8px 0 2px;text-transform:uppercase}
-.doc .d-sub{text-align:center;font-size:12px;margin-bottom:8px;font-style:italic}
-.doc .r{margin:2px 0}.doc .r b{white-space:nowrap}
-.doc .st{font-weight:bold;text-transform:uppercase;margin:11px 0 4px;font-size:13px;border-left:3px solid #0a7d33;padding-left:6px}
-.doc table{border-collapse:collapse;width:100%;font-size:11.5px;margin:4px 0}
-.doc th,.doc td{border:1px solid #000;padding:3px 5px;text-align:center;vertical-align:middle}
-.doc th{background:#e9f3ec}
-.doc td.l{text-align:left}.doc td.n{text-align:right}
-.doc .sign{display:flex;justify-content:space-between;margin-top:16px;text-align:center;gap:8px}
-.doc .sign .col{flex:1;font-size:12px}
-.doc .sign .role{font-weight:bold;text-transform:uppercase}
-.doc .sign .gap{height:64px;display:flex;align-items:center;justify-content:center;margin:2px 0}
-.doc .sign .gap img{max-height:64px;max-width:160px}
-.doc .sign .nm{font-weight:bold;text-transform:uppercase}
-.doc .d-date{text-align:right;font-style:italic;margin-top:10px}
-.doc .ylines{margin:6px 0 2px}
-.doc .ylines .dotline{border-bottom:1px dotted #555;height:26px}
+.doc .foot{position:absolute;left:42.6pt;bottom:21.4pt;width:541.6pt;height:32.6pt;display:block}
+.doc b,.doc .b{font-weight:bold}
+.doc .s3{font-size:7.9pt;line-height:0;position:relative;top:-4.1pt;vertical-align:baseline}
+.doc .ln{min-height:13.8pt;white-space:normal}
+.doc .flex{display:flex;align-items:baseline}
+.doc .flex>.ld.fill{flex:1;min-width:30pt}
+.doc .ld{display:inline-block;border-bottom:.6pt solid #000;line-height:13.2pt;padding:0 2pt;box-sizing:border-box;vertical-align:baseline}
+.doc .ld.dot{border-bottom:1.1pt dotted #000}
+.doc .ld.c{text-align:center}
+/* đầu trang */
+.doc .hd{position:relative;height:50.75pt}
+.doc .hd .logo{position:absolute;left:5.1pt;top:0;width:68.5pt;height:43.8pt}
+.doc .hd .ttl{position:absolute;left:79.8pt;width:276.6pt;top:12.5pt;text-align:center;font-weight:bold;font-size:14pt;line-height:15.5pt;white-space:nowrap}
+.doc .hd .makh{position:absolute;left:367.2pt;top:7.9pt;width:140.9pt;height:26.9pt;border:.6pt solid #000;box-sizing:border-box;
+  padding:.1pt 4pt 0 5.5pt;font-weight:bold;line-height:13.8pt;overflow:hidden}
+.doc .hd .makh span{font-weight:normal}
+/* trang 1 */
+.doc .ct{font-weight:bold;font-style:italic}
+.doc .h{font-weight:bold}
+.doc .dg-head{display:flex;justify-content:space-between;padding-right:20.5pt}
+.doc .dg-head u{text-decoration:underline;text-underline-offset:1.5pt}
+.doc .dg-head .unit{font-style:italic}
+.doc table{border-collapse:collapse;table-layout:fixed}
+.doc th,.doc td{border:.6pt solid #000;padding:0 2pt;text-align:center;font-size:12pt;line-height:13.8pt;overflow:hidden;word-wrap:break-word}
+.doc td{vertical-align:top;padding-top:.6pt}
+.doc th{font-weight:bold;vertical-align:middle;line-height:19.4pt}
+.doc th>span{position:relative;top:-2.5pt}
+.doc .t1{margin-left:1.2pt;width:528.9pt}
+.doc .t1 td.mac{font-weight:bold}
+.doc .t2{margin-left:.2pt;width:512.7pt}
+.doc .t2 th{line-height:20.9pt;padding-bottom:0}
+.doc .t2 td{padding-top:2.4pt}
+.doc .t2 td.l{text-align:left;padding-left:4pt}
+/* trang 2 */
+.doc .bl{position:relative;padding-left:35.7pt}
+.doc .bl>.bu{position:absolute;left:17.8pt;top:0}
+.doc .lb70{display:inline-block;min-width:70.3pt}
+.doc .yk{border-bottom:.6pt solid #000;height:13.8pt;line-height:13.8pt;overflow:hidden;white-space:nowrap}
+.doc .date{text-align:right;padding-right:10pt}
+.doc .sign{display:flex}
+.doc .sign>div{text-align:center;font-weight:bold}
+.doc .sign .gap{height:110.3pt;display:flex;align-items:center;justify-content:center}
+.doc .sign .gap img{max-height:92pt;max-width:150pt}
 
 @media print{
   .no-print{display:none!important}
   body{background:#fff;padding:0}
   #preview-wrap{--pv-scale:1;margin:0;max-width:none;overflow:visible}
-  .doc{box-shadow:none;transform:none;margin:0}
-  .doc .pg{box-shadow:none;margin:0}
+  .doc{transform:none;margin:0}
+  .pg{box-shadow:none;margin:0}
 }
-
-.pg.doc{background:#fff;width:210mm;min-height:295mm;padding:12mm;box-sizing:border-box}

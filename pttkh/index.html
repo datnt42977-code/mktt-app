@@ -30,6 +30,34 @@
   <div id="history-panel" hidden></div>
   <div id="ocr-slot"></div>
 
+  <details id="bulk">
+    <summary>📋 Nhập nhiều khách → mỗi khách 1 phiếu</summary>
+    <div class="bulk-in">
+      <p class="hint">Dán danh sách, <b>mỗi dòng 1 khách</b>: tên khách, giá công nợ, giá xuất HĐ (ghi chú nếu có).<br>
+        VD: <code>Cty An Phú | 1.250.000 | 1.150.000</code> hoặc <code>Cty Hoà Bình 1250 1150</code> (1250 = 1.250.000).<br>
+        Thêm mác: <code>Cty Đông Á M300 1.350.000 1.250.000</code>. Dòng chỉ có mác + giá = thêm mác cho khách ngay trên.<br>
+        Không ghi chú thì tự điền <b>“Thu VAT 25%”</b>. Copy từ Excel/Google Sheet dán vào cũng được.</p>
+      <textarea id="bulk-text" rows="4" placeholder="Cty An Phú | 1.250.000 | 1.150.000&#10;Cty Hoà Bình 1250 1150&#10;Anh Tuấn Q7 M300 1tr3 1tr2"></textarea>
+      <div class="bulk-btns">
+        <button type="button" id="btn-bulk-parse" class="b-green">✂️ Tách danh sách</button>
+        <button type="button" id="btn-bulk-ocr">📷 Chụp / chọn ảnh (AI đọc)</button>
+      </div>
+      <div id="bulk-msg" class="bulk-msg" hidden></div>
+      <div class="tbl-scroll">
+        <table class="mtbl btbl">
+          <thead><tr><th>#</th><th>Khách hàng</th><th>Công trình</th><th>Mác</th><th>Giá công nợ</th><th>Giá xuất HĐ</th><th>Ghi chú</th><th></th></tr></thead>
+          <tbody id="bulk-body"></tbody>
+        </table>
+      </div>
+      <div class="bulk-btns">
+        <button type="button" id="btn-bulk-add">＋ Thêm khách</button>
+        <button type="button" id="btn-bulk-clear">🗑 Xoá hết</button>
+      </div>
+      <button type="button" id="btn-bulk-pdf" class="btn-primary">⬇️ Tạo PDF hàng loạt</button>
+      <p class="bulk-note">Ra <b>1 file PDF</b>, mỗi khách 1 phiếu riêng (2 trang A4 như mẫu). Thanh toán, phụ gia, chiết khấu, người ký lấy theo phiếu đang mở bên dưới. Ghi chú (mặc định “Thu VAT 25%”) nằm ở cột Ghi chú bảng đơn giá, cạnh giá xuất HĐ. Từng phiếu được lưu vào 🕘 Lịch sử để mở lại sửa riêng.</p>
+    </div>
+  </details>
+
   <fieldset>
     <legend>Đầu phiếu</legend>
     <div class="two">
@@ -112,14 +140,6 @@
     <label class="checkbox"><input type="checkbox" id="f-kysong"> In để ký sống (bỏ chữ ký sẵn trên PDF)</label>
   </fieldset>
 
-  <div class="fontsize-ctrl">
-    <span>Cỡ chữ PDF:</span>
-    <button type="button" id="btn-font-dec">A−</button>
-    <strong id="font-val">12</strong>
-    <button type="button" id="btn-font-inc">A+</button>
-    <button type="button" id="btn-font-reset" class="mini">↺</button>
-  </div>
-
   <button type="button" id="btn-pdf" class="btn-primary">⬇️ Tải PDF gửi khách</button>
   <p class="pdf-hint">Bấm nút xanh để tải PDF sạch. ĐỪNG dùng “In qua trình duyệt” — Safari sẽ chèn URL ở cuối trang.</p>
 </form>
@@ -131,6 +151,7 @@
 
 <script src="../vendor/html2pdf.bundle.min.js"></script>
 <script src="../shared/gemini-ocr.js"></script>
+<script src="bulk-parse.js"></script>
 <script src="app.js"></script>
 <script>
   window.addEventListener('load', () => {
