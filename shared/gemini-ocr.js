@@ -16,7 +16,8 @@
     { name: 'gemini-flash-lite-latest', think: 'minimal' }
   ];
   const CALL_TIMEOUT_MS = 25000;   // 1 model treo quá 25s → bỏ hẳn
-  const HEDGE_MS = 6000;           // model đang chạy quá 6s chưa xong → bật thêm model kế chạy SONG SONG, ai xong trước lấy
+  const HEDGE_MS = 3500;           // model đang chạy quá 3,5s chưa xong → bật thêm model kế chạy SONG SONG, ai xong trước lấy (đo 26/11: 3.6-flash hay báo 503 → chờ 6s là phí)
+  const LAST_OK_LS = 'mktt_ocr_last_ok_model'; // model vừa trả lời được → lần sau thử nó TRƯỚC (đỡ đụng model đang quá tải)
   const IMG_MAX_SIDE = 1600;       // ảnh iPhone 4032px → thu còn 1600px: upload nhẹ ~10 lần, vẫn đọc rõ chữ
   const IMG_QUALITY = 0.85;
   const ENDPOINT = (model, key) =>
@@ -84,7 +85,9 @@ QUY TẮC BẮT BUỘC:
           type: 'ARRAY',
           items: {
             type: 'OBJECT',
-            properties: { ngay_cap: { type: 'STRING' }, mac: { type: 'STRING' }, kl: { type: 'STRING' }, dg: { type: 'STRING' }, pt: { type: 'STRING' } }
+            properties: { ngay_cap: { type: 'STRING' }, mac: { type: 'STRING' }, kl: { type: 'STRING' }, dg: { type: 'STRING' }, pt: { type: 'STRING' } },
+            required: ['ngay_cap', 'mac', 'kl', 'dg', 'pt'],
+            propertyOrdering: ['ngay_cap', 'mac', 'kl', 'dg', 'pt']
           }
         }
       },
@@ -280,6 +283,10 @@ QUY TẮC BẮT BUỘC:
     return new Promise((resolve, reject) => {
       let next = 0, pending = 0, done = false, lastErr = null, hedge = null;
       const ctls = [];
+      // Thứ tự thử: model trả lời được lần trước lên đầu
+      let lastOk = null;
+      try { lastOk = localStorage.getItem(LAST_OK_LS); } catch (_) {}
+      const order = MODELS.slice().sort((a, b) => (b.name === lastOk) - (a.name === lastOk));
       const finish = () => { done = true; clearTimeout(hedge); ctls.forEach((c) => c.abort()); };
       const launch = () => {
         if (done || next >= MODELS.length) return;
@@ -287,8 +294,13 @@ QUY TẮC BẮT BUỘC:
         ctls.push(ctl); pending++;
         if (mi > 0 && onProgress) onProgress(`⏳ Google chậm, chạy thêm model dự phòng ${mi + 1}/${MODELS.length}`);
         clearTimeout(hedge); hedge = setTimeout(launch, HEDGE_MS);
-        callModel(MODELS[mi], key, prompt, schema, input, ctl.signal).then(
-          (r) => { if (done) return; finish(); resolve(r); },
+        const model = order[mi];
+        callModel(model, key, prompt, schema, input, ctl.signal).then(
+          (r) => {
+            if (done) return; finish();
+            try { localStorage.setItem(LAST_OK_LS, model.name); } catch (_) {}
+            resolve(r);
+          },
           (e) => {
             pending--; if (done) return; lastErr = e;
             if (e.fatal) { finish(); return reject(e); }   // sai key / hết quyền → dừng hẳn
