@@ -17,6 +17,9 @@
   ];
   const CALL_TIMEOUT_MS = 25000;   // 1 model treo quá 25s → bỏ hẳn
   const HEDGE_MS = 3500;           // model đang chạy quá 3,5s chưa xong → bật thêm model kế chạy SONG SONG, ai xong trước lấy (đo 26/11: 3.6-flash hay báo 503 → chờ 6s là phí)
+  // Module chỉ đọc bảng (ĐNTT): model lite đọc đúng y hệt mà nhanh gấp 3 → thử lite TRƯỚC.
+  // Đo 27/11/2026 (ảnh 6 dòng công nợ): flash-lite-latest 1,7–3,2s đúng 6/6 dòng; 3.6-flash 6,9–8,2s; flash-latest 6s hoặc 503.
+  const LITE_FIRST = { dntt: true };
   const LAST_OK_LS = 'mktt_ocr_last_ok_model'; // model vừa trả lời được → lần sau thử nó TRƯỚC (đỡ đụng model đang quá tải)
   const IMG_MAX_SIDE = 1600;       // ảnh iPhone 4032px → thu còn 1600px: upload nhẹ ~10 lần, vẫn đọc rõ chữ
   const IMG_QUALITY = 0.85;
@@ -279,14 +282,17 @@ QUY TẮC BẮT BUỘC:
 
   // "Đua" các model: chạy model 1; lỗi → bật NGAY model kế; quá HEDGE_MS chưa xong → bật thêm model kế chạy song song.
   // Cái nào trả kết quả trước thì lấy, huỷ các cái còn lại.
-  function raceModels(key, prompt, schema, input, onProgress) {
+  function raceModels(key, prompt, schema, input, onProgress, module) {
     return new Promise((resolve, reject) => {
       let next = 0, pending = 0, done = false, lastErr = null, hedge = null;
       const ctls = [];
       // Thứ tự thử: model trả lời được lần trước lên đầu
       let lastOk = null;
-      try { lastOk = localStorage.getItem(LAST_OK_LS); } catch (_) {}
-      const order = MODELS.slice().sort((a, b) => (b.name === lastOk) - (a.name === lastOk));
+      try { lastOk = localStorage.getItem(LAST_OK_LS + (module ? '_' + module : '')); } catch (_) {}
+      let base = MODELS.slice();
+      if (LITE_FIRST[module]) base.sort((a, b) => /lite/.test(b.name) - /lite/.test(a.name));
+      // Module lite-first: luôn thử lite trước (lite chậm/lỗi thì sau 3,5s model kế tự chạy song song)
+      const order = LITE_FIRST[module] ? base : base.sort((a, b) => (b.name === lastOk) - (a.name === lastOk));
       const finish = () => { done = true; clearTimeout(hedge); ctls.forEach((c) => c.abort()); };
       const launch = () => {
         if (done || next >= MODELS.length) return;
@@ -298,7 +304,7 @@ QUY TẮC BẮT BUỘC:
         callModel(model, key, prompt, schema, input, ctl.signal).then(
           (r) => {
             if (done) return; finish();
-            try { localStorage.setItem(LAST_OK_LS, model.name); } catch (_) {}
+            try { localStorage.setItem(LAST_OK_LS + (module ? '_' + module : ''), model.name); } catch (_) {}
             resolve(r);
           },
           (e) => {
@@ -312,13 +318,13 @@ QUY TẮC BẮT BUỘC:
     });
   }
 
-  async function callGemini(key, prompt, schema, input, onProgress) {
-    try { return await raceModels(key, prompt, schema, input, onProgress); }
+  async function callGemini(key, prompt, schema, input, onProgress, module) {
+    try { return await raceModels(key, prompt, schema, input, onProgress, module); }
     catch (e) {
       if (e.fatal) throw e;
       if (onProgress) onProgress('⏳ Google đang bận, chờ chút rồi thử lại');
       await sleep(1500);
-      return await raceModels(key, prompt, schema, input, onProgress);
+      return await raceModels(key, prompt, schema, input, onProgress, module);
     }
   }
 
@@ -485,7 +491,7 @@ QUY TẮC BẮT BUỘC:
           const { data, mime } = await (imgPromise || compressImage(currentFile));
           input.imgB64 = data; input.mime = mime;
         }
-        const result = await callGemini(key, PROMPTS[module], SCHEMAS[module], input, (t) => { msg = t.replace(/\.+$/, ''); tick(); });
+        const result = await callGemini(key, PROMPTS[module], SCHEMAS[module], input, (t) => { msg = t.replace(/\.+$/, ''); tick(); }, module);
         clearInterval(iv);
         setStatus('✅ Đọc xong sau ' + ((Date.now() - t0) / 1000).toFixed(1) + 's — đã điền vào form', 'ok');
         try { onResult(result); } catch (err) { console.error(err); }
