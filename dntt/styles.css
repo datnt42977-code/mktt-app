@@ -213,3 +213,76 @@ body {
 /* Giữ xuống dòng anh gõ trong câu đề nghị */
 #q-intro { white-space: pre-line; }
 
+
+
+/* ================ NHẬP NHANH TRÊN ĐIỆN THOẠI (26/11/2026) ================ */
+/* 4 nút trên cùng: 1 hàng 4 ô gọn */
+.form-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.form-actions button { padding: 6px 4px; font-size: 13px; white-space: nowrap; }
+/* Ngày lập + Đợt chung 1 hàng */
+.two-col { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: end; }
+.two-col label { margin: 4px 0; }
+#form label { margin: 6px 0; }
+
+/* Dòng công nợ: 3 cột → 2 hàng (Ngày | Mác | KL — Đơn giá | Phụ thu | Thành tiền) */
+.debt-row { grid-template-columns: 1.1fr 1fr 0.8fr; gap: 6px 6px; padding: 8px; position: relative; }
+.debt-row .field { font-size: 11.5px; }
+.debt-row input, .debt-row select { min-height: 40px; padding: 6px 7px; width: 100%; min-width: 0; font-size: 16px; }
+.debt-row .row-bottom { grid-column: 1 / -1; font-size: 13px; }
+.debt-row .btn-remove { padding: 4px 10px; font-size: 13px; }
+#btn-add-row { width: 100%; font-weight: 600; color: #0a7d33; border-color: #0a7d33; background: #f3faf5; }
+
+/* Tuỳ chọn thư ít dùng: thu gọn */
+.more-opts { border: 1px solid #ddd; border-radius: 8px; padding: 0 12px; margin: 0 0 12px; background: #fcfcfc; }
+.more-opts summary { cursor: pointer; padding: 12px 0; font-weight: 600; color: #345; font-size: 14px; }
+.more-opts[open] { padding-bottom: 10px; }
+.more-opts .fontsize-ctrl { margin-top: 8px; }
+
+/* Thanh dưới cùng dính màn hình: Tổng + Gửi Zalo + Tải PDF */
+.action-bar {
+  position: sticky; bottom: 0; z-index: 30;
+  display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: center;
+  margin: 12px -12px 0; padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+  background: rgba(255,255,255,.97); border-top: 1px solid #dfe7e2;
+  box-shadow: 0 -4px 14px rgba(0,0,0,.06);
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+}
+.ab-total { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
+.ab-total span { font-size: 11.5px; color: #667; }
+.ab-total strong { font-size: 17px; color: #0a7d33; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.action-bar .btn-primary { width: auto; margin: 0; padding: 12px 14px; font-size: 15px; white-space: nowrap; }
+.btn-share {
+  padding: 12px 14px; border: none; border-radius: 8px; cursor: pointer; white-space: nowrap;
+  background: #0068ff; color: #fff; font-size: 15px; font-weight: 600;
+}
+.btn-share:active, .action-bar .btn-primary:active { filter: brightness(.92); }
+@media (max-width: 360px) {
+  .action-bar .btn-primary, .btn-share { padding: 11px 10px; font-size: 14px; }
+  .ab-total strong { font-size: 15px; }
+}
+
+/* Hộp "PDF đã xong" khi iOS chặn chia sẻ lần đầu */
+.share-ready { position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,.35); display: flex; align-items: flex-end; justify-content: center; }
+.share-ready .sr-card {
+  width: min(100%, 560px); background: #fff; border-radius: 16px 16px 0 0;
+  padding: 18px 16px calc(16px + env(safe-area-inset-bottom)); display: grid; gap: 10px;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+.share-ready p { margin: 0; font-size: 17px; font-weight: 600; text-align: center; }
+.share-ready .sr-dl, .share-ready .sr-x { padding: 12px; border-radius: 8px; border: 1px solid #ccc; background: #f7f7f7; font-size: 15px; }
+.share-ready .sr-x { background: #fff; color: #666; }
+@media print { .action-bar, .share-ready, .more-opts { display: none !important; } }
+
+/* Thành tiền nằm ô thứ 3 hàng 2, nút × nhỏ góc phải → mỗi dòng chỉ còn 2 hàng */
+.debt-row { padding-top: 10px; }
+.debt-row .row-bottom { grid-column: auto; display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-start; font-size: 12px; line-height: 1.25; padding-bottom: 4px; }
+.debt-row .row-bottom .tt-label { font-size: 11.5px; color: #555; }
+.debt-row .row-bottom .tt { font-size: 14px; }
+.debt-row .btn-remove {
+  position: absolute; top: -8px; right: -6px; width: 26px; height: 26px; padding: 0;
+  border-radius: 50%; font-size: 16px; line-height: 24px; text-align: center;
+}
+.debt-row { grid-template-columns: 1.15fr 1.05fr 0.85fr; }
+.debt-row .row-bottom span { white-space: nowrap; }
+.debt-row .row-bottom .tt { font-size: 13.5px; }
+.debt-row input[data-f="mac"] { padding-right: 4px; }

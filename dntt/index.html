@@ -25,10 +25,10 @@
   <h1>Đề Nghị Thanh Toán</h1>
 
   <div class="form-actions">
-    <button type="button" id="btn-new">Tạo mới</button>
-    <button type="button" id="btn-search">🔍 Tìm khách cũ</button>
-    <button type="button" id="btn-history">Lịch sử</button>
-    <button type="button" id="btn-link-quote">📋 Nạp báo giá</button>
+    <button type="button" id="btn-new">➕ Tạo mới</button>
+    <button type="button" id="btn-search">🔍 Khách cũ</button>
+    <button type="button" id="btn-history">🕘 Lịch sử</button>
+    <button type="button" id="btn-link-quote">📋 Báo giá</button>
   </div>
   <div id="draft-notice" class="draft-notice" hidden></div>
   <div id="search-panel" hidden></div>
@@ -39,12 +39,7 @@
 
   <fieldset>
     <legend>Thông tin chung</legend>
-    <label>Tiêu đề thư
-      <span class="inline-row">
-        <input type="text" id="f-tieude" class="upper" maxlength="70" value="THƯ ĐỀ NGHỊ THANH TOÁN">
-        <button type="button" id="btn-reset-tieude" class="mini">↺</button>
-      </span>
-    </label>
+    <div class="two-col">
     <label>Ngày lập <input type="text" id="f-date" class="date-mask" inputmode="numeric" placeholder="dd/mm/yyyy" maxlength="10"></label>
     <label>Đợt thanh toán
       <span class="inline-row">
@@ -52,6 +47,7 @@
         <button type="button" id="btn-dot-auto" class="mini" title="Tự đánh số theo khách + công trình">Tự</button>
       </span>
     </label>
+    </div>
     <label>Khách hàng
       <span class="suggest-wrap">
         <input type="text" id="f-customer" maxlength="250" placeholder="CÔNG TY CỔ PHẦN ..." autocomplete="off" autocapitalize="words" list="dl-customers">
@@ -59,17 +55,6 @@
     </label>
     <datalist id="dl-customers"></datalist>
     <label>Công trình <input type="text" id="f-project" maxlength="300" placeholder="Trạm biến áp 110kV ..." autocapitalize="words"></label>
-    <label>Câu đề nghị thanh toán
-      <textarea id="f-intro" rows="7"></textarea>
-    </label>
-    <p class="intro-hint">Giữ chữ <b>[công trình]</b> để tự chèn tên công trình vào đúng chỗ. Bấm Enter để xuống dòng. <button type="button" id="btn-intro-reset" class="intro-reset">↺ Câu mặc định</button></p>
-    <label>Tài khoản nhận thanh toán
-      <select id="f-bank">
-        <option value="cong_ty" selected>STK Công ty — BIDV 8600024006</option>
-        <option value="ca_nhan">STK cá nhân — Techcombank 19035673705013</option>
-      </select>
-    </label>
-    <label class="checkbox"><input type="checkbox" id="f-kysong"> In để ký sống (bỏ mộc &amp; chữ ký sẵn trên PDF)</label>
   </fieldset>
 
   <fieldset>
@@ -82,7 +67,25 @@
     <div class="total-line">Tổng công nợ: <strong id="f-total">0</strong> đ</div>
     <div class="total-line" id="f-conlai-line" hidden>Còn phải thanh toán: <strong id="f-conlai">0</strong> đ</div>
   </fieldset>
-
+  <details class="more-opts" id="more-opts">
+    <summary>⚙️ Tuỳ chọn thư (tiêu đề, câu đề nghị, tài khoản, ký sống, cỡ chữ)</summary>
+    <label>Tài khoản nhận thanh toán
+      <select id="f-bank">
+        <option value="cong_ty" selected>STK Công ty — BIDV 8600024006</option>
+        <option value="ca_nhan">STK cá nhân — Techcombank 19035673705013</option>
+      </select>
+    </label>
+    <label class="checkbox"><input type="checkbox" id="f-kysong"> In để ký sống (bỏ mộc &amp; chữ ký sẵn trên PDF)</label>
+    <label>Tiêu đề thư
+      <span class="inline-row">
+        <input type="text" id="f-tieude" class="upper" maxlength="70" value="THƯ ĐỀ NGHỊ THANH TOÁN">
+        <button type="button" id="btn-reset-tieude" class="mini">↺</button>
+      </span>
+    </label>
+    <label>Câu đề nghị thanh toán
+      <textarea id="f-intro" rows="7"></textarea>
+    </label>
+    <p class="intro-hint">Giữ chữ <b>[công trình]</b> để tự chèn tên công trình vào đúng chỗ. Bấm Enter để xuống dòng. <button type="button" id="btn-intro-reset" class="intro-reset">↺ Câu mặc định</button></p>
   <div class="fontsize-ctrl">
     <span>Cỡ chữ PDF:</span>
     <button type="button" id="btn-font-dec">A−</button>
@@ -90,9 +93,15 @@
     <button type="button" id="btn-font-inc">A+</button>
     <button type="button" id="btn-font-reset" class="mini">↺</button>
   </div>
+  </details>
 
-  <button type="button" id="btn-pdf" class="btn-primary">⬇️ Tải PDF (dùng cái này)</button>
-  <p class="pdf-hint no-print">Bấm nút xanh để tải PDF sạch. ĐỪNG dùng “In qua trình duyệt” — Safari sẽ tự chèn dòng URL ở cuối trang.</p>
+
+  <div class="action-bar" id="action-bar">
+    <div class="ab-total"><span id="ab-label">Tổng</span><strong id="ab-total">0 đ</strong></div>
+    <button type="button" id="btn-share" class="btn-share">📤 Gửi Zalo</button>
+    <button type="button" id="btn-pdf" class="btn-primary">⬇️ Tải PDF</button>
+  </div>
+  <p class="pdf-hint no-print">“Gửi Zalo” mở bảng chia sẻ của điện thoại, chọn Zalo rồi chọn người nhận. Bấm nút xanh để tải PDF sạch. ĐỪNG dùng “In qua trình duyệt” — Safari sẽ tự chèn dòng URL ở cuối trang.</p>
   <details class="no-print print-fallback">
     <summary>Cách in dự phòng (có thể dính URL)</summary>
     <button type="button" id="btn-print" class="btn-secondary">In qua trình duyệt</button>

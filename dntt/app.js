@@ -105,7 +105,13 @@
   // ---------- rows state ----------
   let rows = []; // {ngay_cap, mac, kl, dg, pt}
   let linkedQuote = null; // {customer, project, rows:[{name,price,slump}], ...}
-  const emptyRow = () => ({ ngay_cap: formatToday(), mac: '', kl: '', dg: '', pt: '0' });
+  // Dòng mới lấy ngày cấp của dòng cuối (cùng ngày cấp nhiều mác); chưa có dòng nào thì lấy hôm nay
+  const lastRowDate = () => {
+    for (let i = rows.length - 1; i >= 0; i--) { const d = String(rows[i].ngay_cap || '').trim(); if (d) return d; }
+    return formatToday();
+  };
+  const emptyRow = () => ({ ngay_cap: lastRowDate(), mac: '', kl: '', dg: '', pt: '0' });
+  const freshRow = () => ({ ngay_cap: formatToday(), mac: '', kl: '', dg: '', pt: '0' }); // Tạo mới / chưa có nháp
 
   function renderRows() {
     const root = $('debt-list');
@@ -136,7 +142,7 @@
           <input type="text" inputmode="numeric" class="date-mask" maxlength="10" data-f="ngay_cap" value="${esc(r.ngay_cap)}">
         </label>
         ${macFieldHtml}
-        <label class="field">Khối lượng (m³)
+        <label class="field">KL (m³)
           <input type="number" step="0.01" min="0.01" inputmode="decimal" data-f="kl" value="${esc(r.kl)}">
         </label>
         <label class="field">Đơn giá
@@ -146,9 +152,10 @@
           <input type="text" inputmode="numeric" class="money" data-f="pt" value="${esc(r.pt)}">
         </label>
         <div class="row-bottom">
-          <span>Thành tiền: <span class="tt">${fmtVND(calcRow(r))}</span> đ</span>
-          <button type="button" class="btn-remove">× Xoá</button>
+          <span class="tt-label">Thành tiền</span>
+          <span><span class="tt">${fmtVND(calcRow(r))}</span> đ</span>
         </div>
+        <button type="button" class="btn-remove" title="Xoá dòng" aria-label="Xoá dòng">×</button>
       `;
       div.querySelectorAll('input').forEach((inp) => {
         inp.addEventListener('input', () => {
@@ -293,6 +300,9 @@
     const conLai = Math.max(0, total - duTruoc);
     setText('q-total', fmtVND(total) + 'đ');
     setText('f-total', fmtVND(total));
+    // Thanh dưới cùng: hiện số phải thu (còn lại nếu có tiền dư)
+    setText('ab-label', duTruoc > 0 ? 'Còn phải TT' : 'Tổng');
+    setText('ab-total', fmtVND(duTruoc > 0 ? conLai : total) + ' đ');
 
     // Dòng tiền dư + còn lại (chỉ hiện khi có nhập tiền dư)
     const duRow = $('q-dutruoc-row'), conRow = $('q-conlai-row');
@@ -344,16 +354,16 @@
     $('f-bank').value = s.bank || 'cong_ty';
     $('f-kysong').checked = !!s.kysong;
     if ($('f-dutruoc')) $('f-dutruoc').value = s.dutruoc ? fmtVND(digitsOnly(String(s.dutruoc))) : '';
-    rows = Array.isArray(s.rows) && s.rows.length ? s.rows.slice(0, MAX_ROWS).map((r) => ({ ...r })) : [emptyRow()];
+    rows = Array.isArray(s.rows) && s.rows.length ? s.rows.slice(0, MAX_ROWS).map((r) => ({ ...r })) : [freshRow()];
     renderRows(); syncAll();
   }
 
   // ---------- API cho OCR: nạp rows tự động ----------
   // Ngày do AI đọc: nếu thiếu năm (dd/mm) hoặc năm bị AI đoán bậy
   // (không phải năm nay / năm ngoái) → tự điền năm hiện tại.
-  function fixYear(s) {
+  function fixYear(s, fallback) {
     const str = String(s || '').trim();
-    if (!str) return formatToday();
+    if (!str) return fallback || formatToday();
     const m = str.match(/^(\d{1,2})[\/.\-](\d{1,2})(?:[\/.\-](\d{2,4}))?$/);
     if (!m) return str;
     const now = new Date().getFullYear();
@@ -366,13 +376,19 @@
 
   window.__dnttSetRows = function (arr) {
     if (!Array.isArray(arr) || !arr.length) return;
-    rows = arr.slice(0, MAX_ROWS).map((r) => ({
-      ngay_cap: fixYear(r.ngay_cap),
-      mac: r.mac || '',
-      kl: String(r.kl || ''),
-      dg: String(r.dg || ''),
-      pt: String(r.pt || '0'),
-    }));
+    // Dòng AI đọc không thấy ngày → lấy ngày của dòng ngay trên (dòng đầu trống mới lấy hôm nay)
+    let prev = '';
+    rows = arr.slice(0, MAX_ROWS).map((r) => {
+      const ngay = fixYear(r.ngay_cap, prev);
+      prev = ngay;
+      return {
+        ngay_cap: ngay,
+        mac: r.mac || '',
+        kl: String(r.kl || ''),
+        dg: r.dg ? fmtVND(digitsOnly(r.dg)) : '',
+        pt: r.pt ? fmtVND(digitsOnly(r.pt)) || '0' : '0',
+      };
+    });
     renderRows(); onChange();
   };
 
@@ -388,7 +404,7 @@
   function loadDraft() {
     let s = null;
     try { s = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null'); } catch (_) {}
-    if (!s) { applyState({ date: formatToday(), rows: [emptyRow()] }); return; }
+    if (!s) { applyState({ date: formatToday(), rows: [freshRow()] }); return; }
     // ngày lập: nếu nháp khác ngày → đặt lại hôm nay
     const sameDay = s.savedAt && new Date(s.savedAt).toDateString() === new Date().toDateString();
     applyState(Object.assign({}, s, sameDay ? {} : { date: formatToday() }));
@@ -543,7 +559,9 @@
     return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
       .replace(/[^a-zA-Z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 40) || 'DNTT';
   }
-  async function exportPDF() {
+  async function exportPDF(mode) {
+    const sharing = mode === 'share';
+    let pdfBlob = null;
     const q = $('quote');
     const wrap = $('preview-wrap');
     if (!q || typeof html2pdf === 'undefined') {
@@ -553,9 +571,9 @@
     rememberCustomer($('f-customer').value);
     addHistory(collectState());
 
-    const btn = $('btn-pdf');
+    const btn = sharing ? $('btn-share') : $('btn-pdf');
     const oldTxt = btn ? btn.textContent : '';
-    if (btn) { btn.classList.add('pdf-busy'); btn.textContent = '⏳ Đang tạo PDF...'; }
+    if (btn) { btn.classList.add('pdf-busy'); btn.textContent = '⏳ Đang tạo...'; }
 
     // Lưu style hiện tại để khôi phục
     const prev = {
@@ -618,7 +636,8 @@
     };
 
     try {
-      await html2pdf().set(opt).from(q).save();
+      if (sharing) pdfBlob = await html2pdf().set(opt).from(q).outputPdf('blob');
+      else await html2pdf().set(opt).from(q).save();
     } catch (err) {
       alert('Lỗi tạo PDF: ' + (err && err.message ? err.message : err) + '\nThử lại sau vài giây, hoặc giảm cỡ chữ PDF.');
     } finally {
@@ -631,6 +650,44 @@
       if (btn) { btn.classList.remove('pdf-busy'); btn.textContent = oldTxt; }
       fitPreview();
     }
+    if (sharing && pdfBlob) await sharePdf(pdfBlob, filename);
+  }
+
+  // ---------- Gửi PDF qua Zalo (bảng chia sẻ của điện thoại) ----------
+  function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 30000);
+  }
+  async function sharePdf(blob, filename) {
+    const file = new File([blob], filename, { type: 'application/pdf' });
+    const data = { files: [file], title: filename };
+    if (!(navigator.canShare && navigator.canShare(data))) {
+      alert('Máy này chưa mở được bảng chia sẻ file. Em tải PDF về, anh gửi Zalo từ thư mục Tải về nhé.');
+      downloadBlob(blob, filename);
+      return;
+    }
+    try { await navigator.share(data); }
+    catch (err) {
+      if (err && err.name === 'AbortError') return; // anh tự bấm huỷ
+      // iOS chặn chia sẻ khi tạo PDF lâu (mất "lượt bấm") → hiện nút để bấm lại 1 lần
+      showShareReady(data, blob, filename);
+    }
+  }
+  function showShareReady(data, blob, filename) {
+    let box = $('share-ready');
+    if (box) box.remove();
+    box = document.createElement('div');
+    box.id = 'share-ready'; box.className = 'share-ready no-print';
+    box.innerHTML = '<div class="sr-card"><p>✅ PDF đã xong</p><button type="button" class="btn-share sr-go">📤 Gửi Zalo</button><button type="button" class="sr-dl">⬇️ Tải về</button><button type="button" class="sr-x">Đóng</button></div>';
+    document.body.appendChild(box);
+    box.querySelector('.sr-go').addEventListener('click', async () => {
+      box.remove();
+      try { await navigator.share(data); } catch (e) { if (!e || e.name !== 'AbortError') downloadBlob(blob, filename); }
+    });
+    box.querySelector('.sr-dl').addEventListener('click', () => { box.remove(); downloadBlob(blob, filename); });
+    box.querySelector('.sr-x').addEventListener('click', () => box.remove());
   }
 
   // ---------- fit A4 preview vào bề ngang màn hình ----------
@@ -754,15 +811,23 @@
     $('btn-add-row').addEventListener('click', () => {
       if (rows.length >= MAX_ROWS) return;
       rows.push(emptyRow()); renderRows(); onChange();
+      // Nhảy thẳng tới ô Mác của dòng mới → đỡ phải cuộn + bấm
+      const last = $('debt-list').lastElementChild;
+      if (last) {
+        last.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        const f = last.querySelector('[data-f="mac"]');
+        if (f) setTimeout(() => f.focus(), 250);
+      }
     });
     $('btn-new').addEventListener('click', () => {
       if (!confirm('Tạo đề nghị mới? Dữ liệu đang nhập sẽ bị xoá.')) return;
       try { localStorage.removeItem(DRAFT_KEY); } catch (_) {}
-      applyState({ date: formatToday(), rows: [emptyRow()] });
+      applyState({ date: formatToday(), rows: [freshRow()] });
       const n = $('draft-notice'); if (n) n.hidden = true;
     });
     $('btn-history').addEventListener('click', toggleHistory);
-    if ($('btn-pdf')) $('btn-pdf').addEventListener('click', exportPDF);
+    if ($('btn-pdf')) $('btn-pdf').addEventListener('click', () => exportPDF());
+    if ($('btn-share')) $('btn-share').addEventListener('click', () => exportPDF('share'));
     $('btn-link-quote').addEventListener('click', toggleLinkPanel);
     // Nạp báo giá đang chờ (bấm từ Báo Giá qua)
     tryLoadPendingQuote();
