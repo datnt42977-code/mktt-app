@@ -19,7 +19,7 @@
   const HEDGE_MS = 3500;           // model đang chạy quá 3,5s chưa xong → bật thêm model kế chạy SONG SONG, ai xong trước lấy (đo 26/11: 3.6-flash hay báo 503 → chờ 6s là phí)
   // Module chỉ đọc bảng (ĐNTT): model lite đọc đúng y hệt mà nhanh gấp 3 → thử lite TRƯỚC.
   // Đo 27/11/2026 (ảnh 6 dòng công nợ): flash-lite-latest 1,7–3,2s đúng 6/6 dòng; 3.6-flash 6,9–8,2s; flash-latest 6s hoặc 503.
-  const LITE_FIRST = { dntt: true };
+  const LITE_FIRST = { dntt: true, baogia: true }; // đo 27/11: lite 1,2–3,2s, kết quả y hệt 3.6-flash (Báo giá: đúng khách, CĐT, công trình, 2 mác + giá + sụt, bỏ qua thẻ Maps); 3.6-flash 2–8s, có lần treo 25s
   const LAST_OK_LS = 'mktt_ocr_last_ok_model'; // model vừa trả lời được → lần sau thử nó TRƯỚC (đỡ đụng model đang quá tải)
   const IMG_MAX_SIDE = 1600;       // ảnh iPhone 4032px → thu còn 1600px: upload nhẹ ~10 lần, vẫn đọc rõ chữ
   const IMG_QUALITY = 0.85;
