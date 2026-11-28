@@ -36,12 +36,19 @@ QUY TẮC BẮT BUỘC:
 5. macs = danh sách mác bê tông khách yêu cầu. Mỗi mục: name (VD 250, 300R7, M300/10), price (đơn giá VNĐ/m³ số nguyên không dấu phẩy nếu có), slump (độ sụt cm nếu có). Giá bỏ đơn vị & dấu ngăn nghìn. Không có mác nào thì để mảng rỗng.
 6. TUYỆT ĐỐI không bịa. Không chắc thì để chuỗi rỗng.`,
 
-    dntt: `Bạn trích xuất công nợ bê tông từ ảnh (screenshot/Word) và/hoặc text khách gửi.
-QUY TẮC:
-- BỎ QUA chữ trong thẻ bản đồ/Google Maps nhúng; chỉ đọc nội dung người dùng gõ/viết.
-- customer = tên công ty khách (viết HOA đầy đủ). project = tên/địa chỉ công trình.
-- rows = từng dòng cấp bê tông: ngay_cap (dd/mm/yyyy — NẾU nội dung KHÔNG ghi năm thì CHỈ trả "dd/mm", TUYỆT ĐỐI không tự đoán năm), mac (VD M300/14), kl (khối lượng m³, thập phân dùng dấu chấm), dg (đơn giá VNĐ/m³ số nguyên), pt (phụ thu tổng VNĐ số nguyên, không có → "0").
-- Không có bảng công nợ chi tiết → rows = []. Mọi số tiền là số nguyên, bỏ đơn vị/ngăn cách nghìn. Không bịa.`,
+    dntt: `Bạn đọc ảnh (screenshot Zalo/tin nhắn/Word/Excel/phiếu giao hàng/giấy viết tay) và/hoặc text để lập ĐỀ NGHỊ THANH TOÁN bê tông tươi.
+Nội dung có thể là: (a) BẢNG CÔNG NỢ / sổ giao hàng nhiều dòng, hoặc (b) TIN NHẮN KẾ HOẠCH / ĐẶT HÀNG / BÁO CẤP bê tông (VD "Kế hoạch bê tông ngày 29/11/2026 ... Khối lượng: 45m³ (M300) R28 độ sụt 10±2"). CẢ HAI loại đều phải đưa vào rows.
+QUY TẮC BẮT BUỘC:
+1. BỎ QUA chữ trong thẻ bản đồ/Google Maps nhúng; chỉ đọc nội dung người dùng gõ/viết.
+2. customer = công ty/người MUA bê tông (viết HOA đầy đủ). project = tên dự án/công trình (giữ nguyên chữ khách gõ, KHÔNG thêm hạng mục).
+3. rows = MỖI lần cấp bê tông (mỗi ngày + mỗi mác + mỗi hạng mục) là 1 phần tử. Tin nhắn đặt 1 đơn → đúng 1 phần tử. KHÔNG được trả rows rỗng nếu nội dung có khối lượng hoặc mác bê tông.
+   - ngay_cap = NGÀY ĐỔ / ngày cấp / ngày kế hoạch ghi trong nội dung, dạng dd/mm/yyyy. KHÔNG lấy giờ đổ (8h00), KHÔNG lấy giờ/ngày gửi tin nhắn của Zalo, KHÔNG lấy ngày nghiệm thu. Có ghi năm thì giữ đúng năm; không ghi năm thì chỉ trả "dd/mm". "Hôm nay/mai/mốt" thì tính từ NGÀY HÔM NAY cho bên dưới. Không thấy ngày thì để rỗng.
+   - mac = mác bê tông gồm cường độ + tuổi + độ sụt nếu có, viết liền dạng "M300R28/10±2" (VD "(M300).R 28 độ sụt 10± 2" → "M300R28/10±2"; "M250 sụt 12" → "M250/12"; "mác 350" → "M350"; "B22.5" giữ "B22.5"). Không tự thêm thứ khách không ghi.
+   - kl = KHỐI LƯỢNG m³ của dòng đó, chỉ là số, thập phân dùng dấu chấm ("45m³" → "45"; "32,5 khối" → "32.5"). KHÔNG nhầm với chiều dài cần bơm (52m), số điện thoại, giờ.
+   - hang_muc = hạng mục/cấu kiện đổ nếu có (VD "Giằng tường BT 21"), không có để rỗng.
+   - dg = ĐƠN GIÁ VNĐ/m³ CHỈ KHI nội dung ghi rõ giá; không ghi giá → "" (rỗng, KHÔNG ghi 0).
+   - pt = phụ thu (VNĐ, tổng của dòng) chỉ khi nội dung ghi rõ; không có → "".
+4. Mọi số tiền là số nguyên, bỏ đơn vị & dấu ngăn nghìn. TUYỆT ĐỐI không bịa.`,
 
     pttkh: `Bạn trích xuất THÔNG TIN KHÁCH HÀNG từ ảnh chụp (name card / danh thiếp, giấy phép kinh doanh, hợp đồng, con dấu công ty, screenshot Zalo...) và/hoặc text khách gửi. Dùng để điền Phiếu thông tin khách hàng ngành bê tông.
 QUY TẮC BẮT BUỘC:
@@ -88,13 +95,21 @@ QUY TẮC BẮT BUỘC:
           type: 'ARRAY',
           items: {
             type: 'OBJECT',
-            properties: { ngay_cap: { type: 'STRING' }, mac: { type: 'STRING' }, kl: { type: 'STRING' }, dg: { type: 'STRING' }, pt: { type: 'STRING' } },
-            required: ['ngay_cap', 'mac', 'kl', 'dg', 'pt'],
-            propertyOrdering: ['ngay_cap', 'mac', 'kl', 'dg', 'pt']
+            properties: {
+              ngay_cap: { type: 'STRING', description: 'Ngày đổ/ngày cấp dd/mm/yyyy (hoặc dd/mm nếu không ghi năm). Không phải giờ, không phải ngày gửi tin.' },
+              mac: { type: 'STRING', description: 'Mác bê tông viết liền, VD M300R28/10±2' },
+              kl: { type: 'STRING', description: 'Khối lượng m³, chỉ số, dấu chấm thập phân' },
+              hang_muc: { type: 'STRING', description: 'Hạng mục đổ, không có thì rỗng' },
+              dg: { type: 'STRING', description: 'Đơn giá VNĐ/m³ nếu nội dung ghi rõ, không có thì rỗng' },
+              pt: { type: 'STRING', description: 'Phụ thu VNĐ nếu ghi rõ, không có thì rỗng' }
+            },
+            required: ['ngay_cap', 'mac', 'kl', 'hang_muc', 'dg', 'pt'],
+            propertyOrdering: ['ngay_cap', 'mac', 'kl', 'hang_muc', 'dg', 'pt']
           }
         }
       },
-      required: ['customer', 'project', 'rows']
+      required: ['customer', 'project', 'rows'],
+      propertyOrdering: ['customer', 'project', 'rows']
     },
     pttkh: {
       type: 'OBJECT',
@@ -231,10 +246,29 @@ QUY TẮC BẮT BUỘC:
     status === 401 || status === 403 ||
     /api[_ ]?key|permission denied|api_key_invalid|forbidden/i.test(msg || '');
 
+  const todayStr = () => { const d = new Date(), p = (n) => String(n).padStart(2, '0'); return p(d.getDate()) + '/' + p(d.getMonth() + 1) + '/' + d.getFullYear(); };
+
+  // Kiểm tra kết quả theo module: trả chuỗi lý do nếu kết quả THIẾU (→ model kế đọc lại), rỗng nếu ổn.
+  // Lý do có từ 28/11/2026: tin "Kế hoạch bê tông ... 45m³ (M300)" bị model 3.6-flash trả rows=[] → bảng công nợ giữ dòng cũ.
+  const VALIDATE = {
+    dntt(r) {
+      const rows = (r && Array.isArray(r.rows)) ? r.rows : [];
+      if (!rows.length) return 'không đọc ra dòng bê tông nào';
+      const bad = rows.filter((x) => !String(x.mac || '').trim() || !(parseFloat(String(x.kl || '').replace(',', '.')) > 0)).length;
+      if (bad) return bad + ' dòng thiếu mác hoặc khối lượng';
+      return '';
+    }
+  };
+  // Điểm "đầy đủ" của 1 kết quả (khi mọi model đều thiếu → lấy cái đầy đủ nhất thay vì báo lỗi)
+  const score = (r) => {
+    const rows = (r && Array.isArray(r.rows)) ? r.rows : [];
+    return rows.reduce((n, x) => n + (x.ngay_cap ? 1 : 0) + (x.mac ? 2 : 0) + (parseFloat(x.kl) > 0 ? 2 : 0), 0);
+  };
+
   // Gọi 1 model, tự parse JSON. Ném lỗi có .transient / .fatal để loop xử lý.
   // input = { imgB64?, mime?, text? } — cho phép ảnh, text, hoặc CẢ HAI cùng lúc.
   async function callOnce(model, key, prompt, schema, input, think, extSignal) {
-    const parts = [{ text: prompt }];
+    const parts = [{ text: prompt + '\nNGÀY HÔM NAY: ' + todayStr() }];
     if (input.text && input.text.trim())
       parts.push({ text: 'NỘI DUNG KHÁCH GỬI (text):\n' + input.text.trim() });
     if (input.imgB64)
@@ -284,7 +318,7 @@ QUY TẮC BẮT BUỘC:
   // Cái nào trả kết quả trước thì lấy, huỷ các cái còn lại.
   function raceModels(key, prompt, schema, input, onProgress, module) {
     return new Promise((resolve, reject) => {
-      let next = 0, pending = 0, done = false, lastErr = null, hedge = null;
+      let next = 0, pending = 0, done = false, lastErr = null, hedge = null, best = null;
       const ctls = [];
       // Thứ tự thử: model trả lời được lần trước lên đầu
       let lastOk = null;
@@ -303,7 +337,18 @@ QUY TẮC BẮT BUỘC:
         const model = order[mi];
         callModel(model, key, prompt, schema, input, ctl.signal).then(
           (r) => {
-            if (done) return; finish();
+            if (done) return;
+            const why = VALIDATE[module] ? VALIDATE[module](r) : '';
+            if (why) {
+              // Kết quả thiếu → giữ làm phương án dự phòng, cho model kế đọc lại
+              if (!best || score(r) > score(best)) best = r;
+              pending--;
+              if (onProgress) onProgress('⏳ Đọc chưa đủ (' + why + '), đang đọc kỹ lại');
+              if (next < MODELS.length) { clearTimeout(hedge); launch(); }
+              else if (pending === 0) { finish(); resolve(best); }
+              return;
+            }
+            finish();
             try { localStorage.setItem(LAST_OK_LS + (module ? '_' + module : ''), model.name); } catch (_) {}
             resolve(r);
           },
@@ -311,7 +356,7 @@ QUY TẮC BẮT BUỘC:
             pending--; if (done) return; lastErr = e;
             if (e.fatal) { finish(); return reject(e); }   // sai key / hết quyền → dừng hẳn
             if (next < MODELS.length) launch();
-            else if (pending === 0) { finish(); reject(lastErr); }
+            else if (pending === 0) { finish(); if (best) resolve(best); else reject(lastErr); }
           });
       };
       launch();
@@ -494,7 +539,7 @@ QUY TẮC BẮT BUỘC:
         const result = await callGemini(key, PROMPTS[module], SCHEMAS[module], input, (t) => { msg = t.replace(/\.+$/, ''); tick(); }, module);
         clearInterval(iv);
         setStatus('✅ Đọc xong sau ' + ((Date.now() - t0) / 1000).toFixed(1) + 's — đã điền vào form', 'ok');
-        try { onResult(result); } catch (err) { console.error(err); }
+        try { onResult(result, input); } catch (err) { console.error(err); }
         setTimeout(close, 500);
       } catch (err) {
         clearInterval(iv);
