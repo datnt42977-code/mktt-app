@@ -191,23 +191,26 @@
     window.MkttOCR.mount({
       containerId: 'ocr-slot',
       module: 'dntt',
-      onResult(data) {
+      onResult(data, input) {
         if (!data) return;
         if (data.customer) document.getElementById('f-customer').value = String(data.customer).toUpperCase();
         if (data.project) document.getElementById('f-project').value = String(data.project);
-        // Nếu có rows → nạp vào bảng công nợ (giữ ngày/mac/kl/dg/pt)
-        if (Array.isArray(data.rows) && data.rows.length && window.__dnttSetRows) {
-          window.__dnttSetRows(data.rows);
-        }
-        // Trigger sync + save nháp
+        // Nạp dòng bê tông (ngày cấp / mác / KL) + tự điền giá cũ. AI không ra dòng nào thì báo rõ, KHÔNG im lặng giữ dòng cũ.
+        const res = window.__dnttSetRows ? window.__dnttSetRows(data.rows || [], input && input.text) : { rows: 0 };
         document.getElementById('f-customer').dispatchEvent(new Event('input', { bubbles: true }));
+        let note = document.getElementById('ocr-note');
+        if (!note) { note = document.createElement('div'); note.id = 'ocr-note'; document.getElementById('ocr-slot').after(note); }
+        if (!res.rows) {
+          note.className = 'ocr-note warn';
+          note.textContent = '⚠️ AI chưa đọc ra dòng bê tông nào (ngày cấp / mác / khối lượng) — bảng công nợ giữ nguyên, anh kiểm tra lại giúp em.';
+        } else {
+          note.className = 'ocr-note ' + (res.missing ? 'warn' : 'ok');
+          note.textContent = '✅ Đã điền ' + res.rows + ' dòng' + (res.priced ? ' · ' + res.priced + ' dòng tự lấy giá cũ' : '') +
+            (res.missing ? ' · ' + res.missing + ' dòng chưa có giá cũ, anh nhập đơn giá giúp em' : '');
+        }
+        clearTimeout(note._t); note._t = setTimeout(() => note.remove(), 15000);
       }
     });
-  });
-</script>
-</body>
-</html>
-
   });
 </script>
 </body>

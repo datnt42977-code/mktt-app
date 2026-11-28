@@ -146,7 +146,8 @@
           <input type="number" step="0.01" min="0.01" inputmode="decimal" data-f="kl" value="${esc(r.kl)}">
         </label>
         <label class="field">Đơn giá
-          <input type="text" inputmode="numeric" class="money" data-f="dg" value="${esc(r.dg)}">
+          <input type="text" inputmode="numeric" class="money" data-f="dg" value="${esc(r.dg)}" placeholder="${r.mac ? 'chưa có giá cũ' : ''}">
+          <span class="dg-src"${r.dg_src ? '' : ' hidden'}>↺ ${esc(r.dg_src || '')}</span>
         </label>
         <label class="field">Phụ thu
           <input type="text" inputmode="numeric" class="money" data-f="pt" value="${esc(r.pt)}">
@@ -162,10 +163,20 @@
           if (inp.classList.contains('date-mask')) maskDate(inp);
           if (inp.classList.contains('money')) inp.value = inp.value ? fmtVND(digitsOnly(inp.value)) : '';
           rows[idx][inp.dataset.f] = inp.value;
+          if (inp.dataset.f === 'dg' && rows[idx].dg_src) { // anh tự sửa giá → bỏ nhãn "giá cũ"
+            delete rows[idx].dg_src;
+            const tag = div.querySelector('.dg-src'); if (tag) tag.hidden = true;
+          }
           const ttEl = div.querySelector('.tt');
           if (ttEl) ttEl.textContent = fmtVND(calcRow(rows[idx]));
           onChange();
         });
+      });
+      // Gõ/chọn mác xong (rời ô) → chuẩn hoá mác + tự điền giá cũ nếu ô giá trống
+      const macInp = div.querySelector('input[data-f="mac"]');
+      if (macInp) macInp.addEventListener('change', () => {
+        rows[idx].mac = normMac(macInp.value);
+        if (autoPrice(idx) || rows[idx].mac !== macInp.value) { renderRows(); onChange(); }
       });
       // Mác dropdown (khi đã link báo giá) — chọn mác → auto điền đơn giá
       const macSel = div.querySelector('select[data-f="mac"]');
@@ -174,6 +185,7 @@
           rows[idx].mac = macSel.value;
           const hit = linkedMacs.find((m) => m.name === macSel.value);
           if (hit) {
+            delete rows[idx].dg_src;
             rows[idx].dg = fmtVND(hit.price);
             const dgInp = div.querySelector('input[data-f="dg"]');
             if (dgInp) dgInp.value = rows[idx].dg;
@@ -358,6 +370,146 @@
     renderRows(); syncAll();
   }
 
+  // ---------- mác bê tông: chuẩn hoá + khoá so khớp ----------
+  // "(M300).R 28 độ sụt 10± 2" → "M300R28/10±2"; "M250 sụt 12" → "M250R28/12±2"; "mác 350" → "M350R28"
+  function parseMac(s) {
+    const t = String(s || '').toUpperCase().replace(/Ộ/g, 'O').replace(/\s+/g, ' ');
+    const g = t.match(/(?:\bM|MÁC|MAC)\s*\.?\s*(\d{3})(?!\d)/) || t.match(/^\s*(\d{3})(?!\d)/);
+    if (!g) return null;
+    const age = t.match(/(?:\b|\d)R\s*(\d{1,2})(?!\d)/);
+    let sl = t.match(/(?:SỤT|SUT|\bS)\s*:?\s*(\d{1,2})\s*(?:(?:±|\+\/?-)\s*(\d))?/) ||
+             t.match(/\/\s*(\d{1,2})\s*(?:(?:±|\+\/?-)\s*(\d))?/);
+    return { grade: g[1], age: age ? age[1] : '28', slump: sl ? sl[1] : '', tol: sl && sl[2] ? sl[2] : (sl ? '2' : '') };
+  }
+  function normMac(s) {
+    const raw = String(s || '').trim();
+    const m = parseMac(raw);
+    if (!m) return raw; // B22.5, ký hiệu lạ → giữ nguyên chữ khách ghi
+    return 'M' + m.grade + 'R' + m.age + (m.slump ? '/' + m.slump + '±' + m.tol : '');
+  }
+  // khoá so giá: cường độ + độ sụt (sụt trống = khớp mọi độ sụt)
+  function macKey(s) { const m = parseMac(s); return m ? { grade: m.grade, slump: m.slump } : null; }
+  function sameMac(a, b, strict) {
+    const x = macKey(a), y = macKey(b);
+    if (!x || !y) return normKey(a) && normKey(a) === normKey(b);
+    if (x.grade !== y.grade) return false;
+    if (!x.slump || !y.slump) return !strict;
+    return x.slump === y.slump;
+  }
+
+  // ---------- đọc dự phòng từ text khách gửi (1 đơn) ----------
+  // Vá ô AI bỏ trống: ngày đổ, mác, khối lượng
+  function parseOrderText(text) {
+    const t = String(text || '');
+    if (!t.trim()) return null;
+    const out = {};
+    const d = t.match(/(?:k[ếe] ho[ạa]ch[^\n\d]{0,25}|ng[àa]y\s*(?:đổ|cấp|giao)?\s*:?\s*)(\d{1,2}[\/.\-]\d{1,2}(?:[\/.\-]\d{2,4})?)/i) ||
+              t.match(/\b(\d{1,2}\/\d{1,2}\/\d{4})\b/);
+    if (d) out.ngay_cap = d[1].replace(/[.\-]/g, '/');
+    const k = t.match(/kh[ốo]i\s*l[ưu][ợo]ng\s*:?\s*(\d+(?:[.,]\d+)?)/i) || t.match(/(\d+(?:[.,]\d+)?)\s*(?:m3|m³|khối)/i);
+    if (k) out.kl = k[1].replace(',', '.');
+    const macLine = (t.match(/[^\n]*\bM\s*\d{3}[^\n]*/i) || t.match(/[^\n]*m[áa]c\s*\d{3}[^\n]*/i) || [''])[0];
+    if (macLine) { const nm = normMac(macLine.replace(/^[^M]*?(?=\(?M\s*\d{3}|m[áa]c)/i, '')); if (parseMac(nm)) out.mac = nm; }
+    return Object.keys(out).length ? out : null;
+  }
+
+  // ---------- GIÁ CŨ: tự tìm đơn giá đã dùng trước đây ----------
+  // Ưu tiên: dòng khác trong đề nghị đang soạn → ĐNTT đợt trước cùng khách+công trình → cùng khách
+  //          → Báo giá của khách → Phiếu thông tin KH (giá công nợ)
+  const CORP = /\b(cong ty|cty|ct|tnhh|co phan|cp|xay dung|xd|dau tu|thuong mai|tm|dich vu|dv|joint stock|company|jsc|co\.?,? ?ltd|mtv|mot thanh vien)\b/g;
+  const custCore = (s) => normKey(s).replace(/[^a-z0-9 ]/g, ' ').replace(CORP, ' ').replace(/\s+/g, ' ').trim();
+  function sameCust(a, b) {
+    const x = custCore(a), y = custCore(b);
+    if (!x || !y) return false;
+    if (x === y) return true;
+    const [sh, lo] = x.length <= y.length ? [x, y] : [y, x];
+    return sh.length >= 3 && (' ' + lo + ' ').includes(' ' + sh + ' ');
+  }
+  const sameProj = (a, b) => { const x = normKey(a), y = normKey(b); return !!x && !!y && (x === y || x.includes(y) || y.includes(x)); };
+  const readLS = (k, def) => { try { const v = JSON.parse(localStorage.getItem(k) || 'null'); return v == null ? def : v; } catch (_) { return def; } };
+  const dmy = (ts) => { const d = new Date(ts); return pad2(d.getDate()) + '/' + pad2(d.getMonth() + 1); };
+
+  // Sổ giá: mỗi lần anh gõ đơn giá cho 1 mác của 1 khách là app ghi nhớ ngay (không cần xuất PDF)
+  const PRICEBOOK_KEY = 'dntt-mktt-prices-v1';
+  function rememberPrices() {
+    const cust = $('f-customer').value.trim(), proj = $('f-project').value.trim();
+    if (!cust) return;
+    let book = readLS(PRICEBOOK_KEY, []);
+    if (!Array.isArray(book)) book = [];
+    let changed = false;
+    rows.forEach((r) => {
+      const dg = parseMoney(r.dg);
+      if (!(dg > 0) || r.dg_src || !String(r.mac || '').trim()) return; // chỉ ghi giá anh tự gõ
+      const i = book.findIndex((b) => sameCust(b.customer, cust) && normKey(b.project) === normKey(proj) && sameMac(b.mac, r.mac, true));
+      if (i >= 0 && book[i].dg === dg) return;
+      if (i >= 0) book.splice(i, 1);
+      book.unshift({ customer: cust, project: proj, mac: r.mac, dg, at: Date.now() });
+      changed = true;
+    });
+    if (changed) { try { localStorage.setItem(PRICEBOOK_KEY, JSON.stringify(book.slice(0, 500))); } catch (_) {} }
+  }
+
+  function findOldPrice(mac, customer, project, skipIdx) {
+    if (!String(mac || '').trim()) return null;
+    // 0) dòng khác cùng mác trong đề nghị đang soạn
+    for (let i = 0; i < rows.length; i++) {
+      if (i === skipIdx) continue;
+      if (parseMoney(rows[i].dg) > 0 && sameMac(rows[i].mac, mac, true)) return { dg: parseMoney(rows[i].dg), src: 'như dòng ' + (i + 1) };
+    }
+    if (!String(customer || '').trim()) return null;
+    // 1) sổ giá (giá anh gõ gần nhất): cùng công trình trước, rồi cùng khách
+    const book = readLS(PRICEBOOK_KEY, []);
+    for (const [needProj, strict] of [[true, true], [true, false], [false, true], [false, false]]) {
+      const b = (Array.isArray(book) ? book : []).find((x) => sameCust(x.customer, customer) && (!needProj || sameProj(x.project, project)) && sameMac(x.mac, mac, strict));
+      if (b) return { dg: b.dg, src: 'giá cũ ' + dmy(b.at) + (needProj ? '' : ' (' + (b.project || 'CT khác') + ')') };
+    }
+    const hist = getHistory().slice().sort((a, b) => (b.at || 0) - (a.at || 0));
+    const fromHist = (needProj, strict) => {
+      for (const h of hist) {
+        const st = h && h.state; if (!st || !sameCust(st.customer, customer)) continue;
+        if (needProj && !sameProj(st.project, project)) continue;
+        const r = (st.rows || []).find((x) => parseMoney(x.dg) > 0 && sameMac(x.mac, mac, strict));
+        if (r) return { dg: parseMoney(r.dg), src: 'giá cũ ' + (st.dot ? 'đợt ' + st.dot + ' · ' : '') + dmy(h.at) + (needProj ? '' : ' (' + (st.project || 'CT khác') + ')') };
+      }
+      return null;
+    };
+    let hit = fromHist(true, true) || fromHist(true, false) || fromHist(false, true) || fromHist(false, false);
+    if (hit) return hit;
+    // Báo giá
+    const quotes = (window.QuotesStore && window.QuotesStore.listQuotes()) || readLS('baogia-mktt-quotes-v1', { quotes: [] }).quotes || [];
+    for (const strict of [true, false]) {
+      for (const q of quotes) {
+        if (!sameCust(q.customer, customer)) continue;
+        const r = (q.rows || []).find((x) => parseMoney(x.price) > 0 && sameMac(String(x.name || '') + (x.slump ? '/' + x.slump : ''), mac, strict));
+        if (r) return { dg: parseMoney(r.price), src: 'báo giá ' + (q.date || (q.savedAt ? dmy(q.savedAt) : '')) };
+      }
+    }
+    // Phiếu thông tin KH (giá công nợ)
+    const ptt = readLS('pttkh-mktt-history-v1', []).map((h) => ({ kh: h.state && h.state.kh, at: h.at, mac: (h.state && h.state.mac) || [] }))
+      .concat(readLS('pttkh-mktt-bulk-v1', []).map((r) => ({ kh: r.kh, at: 0, mac: [{ m: r.mac, cn: r.cn }] })));
+    for (const strict of [true, false]) {
+      for (const p of ptt) {
+        if (!sameCust(p.kh, customer)) continue;
+        const m = p.mac.find((x) => parseMoney(x.cn) > 0 && sameMac(x.m, mac, strict));
+        if (m) return { dg: parseMoney(m.cn), src: 'phiếu KH' + (p.at ? ' ' + dmy(p.at) : '') };
+      }
+    }
+    return null;
+  }
+  // Điền giá cũ cho các dòng chưa có giá (hoặc giá do app tự điền trước đó). Trả số dòng đã điền.
+  function autoPrice(onlyIdx) {
+    const cust = $('f-customer').value, proj = $('f-project').value;
+    let n = 0;
+    rows.forEach((r, i) => {
+      if (onlyIdx != null && i !== onlyIdx) return;
+      if (parseMoney(r.dg) > 0 && !r.dg_src) return; // anh đã gõ tay → giữ nguyên
+      const hit = findOldPrice(r.mac, cust, proj, i);
+      if (hit) { r.dg = fmtVND(hit.dg); r.dg_src = hit.src; n++; }
+      else if (r.dg_src) { r.dg = ''; delete r.dg_src; } // giá tự điền cũ không còn đúng (đổi mác/khách)
+    });
+    return n;
+  }
+
   // ---------- API cho OCR: nạp rows tự động ----------
   // Ngày do AI đọc: nếu thiếu năm (dd/mm) hoặc năm bị AI đoán bậy
   // (không phải năm nay / năm ngoái) → tự điền năm hiện tại.
@@ -374,22 +526,35 @@
     return p(m[1]) + '/' + p(m[2]) + '/' + y;
   }
 
-  window.__dnttSetRows = function (arr) {
-    if (!Array.isArray(arr) || !arr.length) return;
+  // arr = rows AI đọc; text = nội dung text anh dán (để vá ô AI bỏ trống). Trả { rows, priced }.
+  window.__dnttSetRows = function (arr, text) {
+    if (!Array.isArray(arr)) arr = [];
+    const fb = parseOrderText(text);
+    if (!arr.length && fb && fb.kl) arr = [fb];               // AI không ra dòng nào mà text có đơn → dùng bộ đọc dự phòng
+    if (!arr.length) return { rows: 0, priced: 0 };
+    if (arr.length === 1 && fb) {                              // 1 đơn: vá ô AI bỏ trống
+      const r = arr[0];
+      if (!String(r.ngay_cap || '').trim() && fb.ngay_cap) r.ngay_cap = fb.ngay_cap;
+      if (!String(r.mac || '').trim() && fb.mac) r.mac = fb.mac;
+      if (!(parseFloat(r.kl) > 0) && fb.kl) r.kl = fb.kl;
+    }
     // Dòng AI đọc không thấy ngày → lấy ngày của dòng ngay trên (dòng đầu trống mới lấy hôm nay)
     let prev = '';
     rows = arr.slice(0, MAX_ROWS).map((r) => {
       const ngay = fixYear(r.ngay_cap, prev);
       prev = ngay;
+      const kl = String(r.kl || '').replace(',', '.').replace(/[^\d.]/g, '');
       return {
         ngay_cap: ngay,
-        mac: r.mac || '',
-        kl: String(r.kl || ''),
-        dg: r.dg ? fmtVND(digitsOnly(r.dg)) : '',
-        pt: r.pt ? fmtVND(digitsOnly(r.pt)) || '0' : '0',
+        mac: normMac(r.mac),
+        kl: parseFloat(kl) > 0 ? String(parseFloat(kl)) : '',
+        dg: parseMoney(r.dg) > 0 ? fmtVND(parseMoney(r.dg)) : '',
+        pt: parseMoney(r.pt) > 0 ? fmtVND(parseMoney(r.pt)) : '0',
       };
     });
+    const priced = autoPrice();
     renderRows(); onChange();
+    return { rows: rows.length, priced, missing: rows.filter((r) => !(parseMoney(r.dg) > 0)).length };
   };
 
   // ---------- persistence ----------
@@ -399,6 +564,7 @@
     clearTimeout(saveTimer);
     saveTimer = setTimeout(() => {
       try { localStorage.setItem(DRAFT_KEY, JSON.stringify(collectState())); } catch (_) {}
+      try { rememberPrices(); } catch (_) {}
     }, 300);
   }
   function loadDraft() {
@@ -787,7 +953,11 @@
       onChange();
     });
     // Tự đánh số đợt khi đổi khách / công trình (nếu ô đợt còn trống)
-    ['f-customer', 'f-project'].forEach((id) => $(id).addEventListener('blur', () => { autoFillDot(false); onChange(); }));
+    ['f-customer', 'f-project'].forEach((id) => $(id).addEventListener('blur', () => {
+      autoFillDot(false);
+      if (autoPrice()) renderRows(); // đổi khách → tìm lại giá cũ cho dòng chưa có giá
+      onChange();
+    }));
     if ($('f-dot')) $('f-dot').addEventListener('input', () => {
       $('f-dot').value = $('f-dot').value.replace(/\D/g, '').slice(0, 2);
       onChange();

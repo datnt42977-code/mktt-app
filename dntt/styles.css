@@ -286,3 +286,17 @@ body {
 .debt-row .row-bottom span { white-space: nowrap; }
 .debt-row .row-bottom .tt { font-size: 13.5px; }
 .debt-row input[data-f="mac"] { padding-right: 4px; }
+
+/* nhãn nguồn giá cũ tự điền (28/11/2026) */
+.dg-src { display: block; margin-top: 3px; font-size: 11px; line-height: 1.25; color: #0a7d33; font-weight: 600;
+  white-space: normal; overflow-wrap: anywhere; }
+.dg-src[hidden] { display: none; }
+.ocr-note { margin: 8px 0; padding: 9px 11px; border-radius: 10px; font-size: 13.5px; line-height: 1.4; }
+.ocr-note.ok { background: #ecf7ef; color: #0a6a2c; }
+.ocr-note.warn { background: #fff5e0; color: #8a5a00; }
+/* Mác đầy đủ "M300R28/10±2" phải hiện trọn trên điện thoại (28/11/2026):
+   hàng 1 = Ngày cấp | Mác (rộng 2 cột) · hàng 2 = KL | Đơn giá | Phụ thu · hàng 3 = Thành tiền */
+.debt-row { grid-template-columns: minmax(0, 1.08fr) minmax(0, 1.1fr) minmax(0, 0.82fr); }
+.debt-row .field { min-width: 0; }
+.debt-row > .field:nth-of-type(2) { grid-column: span 2; }
+.debt-row .row-bottom { grid-column: 1 / -1; flex-direction: row; justify-content: flex-end; align-items: baseline; gap: 8px; padding: 0 2px; }
